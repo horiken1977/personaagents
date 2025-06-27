@@ -3,8 +3,6 @@ name: Deploy to Sakura Internet
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -15,31 +13,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Deploy to Sakura Internet via SFTP
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+    - name: Deploy via SFTP
+      uses: pressidium/lftp-mirror-action@v1
       with:
-        username: ${{ secrets.FTP_USERNAME }}
-        server: ${{ secrets.FTP_HOST }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        remote_path: ${{ secrets.FTP_SERVER_DIR }}
-        local_path: './'
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          **/.DS_Store
-          **/.github/**
-          **/README.md
-          **/.gitignore
-          **/package*.json
-          **/logs/**
-          **/.vscode/**
-          **/development/**
-          **/tests/**
-          **/docs/**
+        host: ${{ secrets.FTP_HOST }}
+        user: ${{ secrets.FTP_USERNAME }}
+        pass: ${{ secrets.FTP_PASSWORD }}
+        localDir: './'
+        remoteDir: ${{ secrets.FTP_SERVER_DIR }}
+        options: '--verbose --exclude .git/ --exclude .github/ --exclude node_modules/ --exclude .DS_Store --exclude README.md --exclude .gitignore'
         
     - name: Deployment notification
       run: |
         echo "✅ デプロイが完了しました！"
         echo "🌐 サイトURL: https://mokumoku.sakura.ne.jp/persona/"
-        echo "📁 デプロイされたファイル一覧を確認してください"
