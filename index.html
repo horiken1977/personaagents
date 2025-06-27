@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>北米市場調査AIエージェント | 日系食品メーカー進出支援</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="header-title">北米市場調査AIエージェント</h1>
+            <p class="header-subtitle">日系調味料メーカーの北米進出を支援するAIペルソナとの対話システム</p>
+        </header>
+
+        <main class="main">
+            <section class="intro">
+                <h2>ペルソナを選択して対話を開始</h2>
+                <p>北米市場の多様な消費者層を代表する10のペルソナから、質問したい対象を選択してください。</p>
+            </section>
+
+            <section class="persona-grid" id="personaGrid">
+                <!-- ペルソナカードは JavaScript で動的に生成 -->
+            </section>
+
+            <section class="settings">
+                <div class="settings-group">
+                    <label for="llmProvider">LLMプロバイダー:</label>
+                    <select id="llmProvider" class="settings-select">
+                        <option value="openai">OpenAI GPT-4</option>
+                        <option value="claude">Anthropic Claude</option>
+                        <option value="gemini">Google Gemini</option>
+                    </select>
+                </div>
+                
+                <div class="settings-group">
+                    <label for="apiKey">APIキー:</label>
+                    <input type="password" id="apiKey" class="settings-input" placeholder="APIキーを入力してください">
+                    <small class="settings-help">APIキーはブラウザのセッション中のみ保存されます</small>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 日系食品メーカー北米進出支援システム</p>
+        </footer>
+    </div>
+
+    <!-- 選択確認モーダル -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3>ペルソナ選択確認</h3>
+            <div id="selectedPersonaInfo"></div>
+            <div class="modal-actions">
+                <button id="confirmBtn" class="btn btn-primary">対話を開始</button>
+                <button id="cancelBtn" class="btn btn-secondary">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
