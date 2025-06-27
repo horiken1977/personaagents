@@ -1,0 +1,51 @@
+name: Deploy to Sakura Internet
+
+# main ブランチにプッシュされた時に実行
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# 手動実行も可能
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # リポジトリのコードをチェックアウト
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    # さくらインターネットにFTPデプロイ
+    - name: Deploy to Sakura Internet via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_HOST }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        server-dir: ${{ secrets.FTP_SERVER_DIR }}
+        # デプロイ対象外のファイル/フォルダを指定
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/.DS_Store
+          **/.github/**
+          **/README.md
+          **/.gitignore
+          **/package*.json
+          **/logs/**
+          **/.vscode/**
+          **/development/**
+          **/tests/**
+          **/docs/**
+        
+    # デプロイ完了通知
+    - name: Deployment notification
+      run: |
+        echo "✅ デプロイが完了しました！"
+        echo "🌐 サイトURL: https://[アカウント名].sakura.ne.jp/"
+        echo "📁 デプロイされたファイル一覧を確認してください"
