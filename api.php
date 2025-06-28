@@ -64,7 +64,7 @@ class LLMAPIHub {
             
             // レート制限チェック
             $clientIP = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-            if (!checkRateLimit($clientIP)) {
+            if (!$this->checkRateLimit($clientIP)) {
                 throw new Exception('Rate limit exceeded', 429);
             }
             
@@ -176,11 +176,11 @@ class LLMAPIHub {
         
         $response = $this->makeHTTPRequest($config['endpoint'], $headers, $data);
         
-        if (isset($response['error'])) {
-            throw new Exception('OpenAI API Error: ' . $response['error']['message'], 400);
+        if (!isset($response['choices'][0]['message']['content'])) {
+            throw new Exception('Invalid response from OpenAI API', 500);
         }
         
-        return $response['choices'][0]['message']['content'] ?? 'No response generated';
+        return $response['choices'][0]['message']['content'];
     }
     
     /**
@@ -195,29 +195,30 @@ class LLMAPIHub {
         
         $data = [
             'model' => $config['model'],
-            'max_tokens' => $config['max_tokens'],
             'messages' => [
                 [
                     'role' => 'user',
                     'content' => $input['prompt']
                 ]
-            ]
+            ],
+            'max_tokens' => $config['max_tokens'],
+            'temperature' => $config['temperature']
         ];
         
         $response = $this->makeHTTPRequest($config['endpoint'], $headers, $data);
         
-        if (isset($response['error'])) {
-            throw new Exception('Claude API Error: ' . $response['error']['message'], 400);
+        if (!isset($response['content'][0]['text'])) {
+            throw new Exception('Invalid response from Claude API', 500);
         }
         
-        return $response['content'][0]['text'] ?? 'No response generated';
+        return $response['content'][0]['text'];
     }
     
     /**
      * Gemini API呼び出し
      */
     private function callGemini($input, $config) {
-        $endpoint = $config['endpoint'] . '?key=' . $input['apiKey'];
+        $url = $config['endpoint'] . '?key=' . $input['apiKey'];
         
         $headers = [
             'Content-Type: application/json'
@@ -234,36 +235,34 @@ class LLMAPIHub {
                 ]
             ],
             'generationConfig' => [
-                'temperature' => $config['temperature'],
-                'maxOutputTokens' => $config['max_tokens']
+                'maxOutputTokens' => $config['max_tokens'],
+                'temperature' => $config['temperature']
             ]
         ];
         
-        $response = $this->makeHTTPRequest($endpoint, $headers, $data);
+        $response = $this->makeHTTPRequest($url, $headers, $data);
         
-        if (isset($response['error'])) {
-            throw new Exception('Gemini API Error: ' . $response['error']['message'], 400);
+        if (!isset($response['candidates'][0]['content']['parts'][0]['text'])) {
+            throw new Exception('Invalid response from Gemini API', 500);
         }
         
-        return $response['candidates'][0]['content']['parts'][0]['text'] ?? 'No response generated';
+        return $response['candidates'][0]['content']['parts'][0]['text'];
     }
     
     /**
      * HTTP リクエスト実行
      */
     private function makeHTTPRequest($url, $headers, $data) {
-        $ch = curl_init();
+        $ch = curl_init($url);
         
         curl_setopt_array($ch, [
-            CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => json_encode($data),
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_TIMEOUT => 30,
-            CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_USERAGENT => 'AgetSite-LLM-Hub/1.0'
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1
         ]);
         
         $response = curl_exec($ch);
@@ -273,91 +272,54 @@ class LLMAPIHub {
         curl_close($ch);
         
         if ($error) {
-            throw new Exception('HTTP Request failed: ' . $error, 500);
+            throw new Exception('cURL error: ' . $error, 500);
         }
         
         if ($httpCode >= 400) {
-            writeLog("HTTP Error {$httpCode}: {$response}", 'ERROR');
-            $decodedResponse = json_decode($response, true);
-            if ($decodedResponse && isset($decodedResponse['error'])) {
-                throw new Exception($decodedResponse['error']['message'] ?? 'HTTP Error', $httpCode);
-            }
-            throw new Exception("HTTP Error {$httpCode}", $httpCode);
+            $errorData = json_decode($response, true);
+            $errorMessage = $errorData['error']['message'] ?? 'HTTP error: ' . $httpCode;
+            throw new Exception($errorMessage, $httpCode);
         }
         
         $decodedResponse = json_decode($response, true);
         
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception('Invalid JSON response from API', 500);
+            throw new Exception('Invalid JSON response', 500);
         }
         
         return $decodedResponse;
     }
     
     /**
-     * プロバイダー一覧取得
+     * レート制限チェック
      */
-    public function getProviders() {
-        return array_map(function($config) {
-            return [
-                'name' => $config['name'],
-                'model' => $config['model']
-            ];
-        }, $this->providers);
-    }
-    
-    /**
-     * ヘルスチェック
-     */
-    public function healthCheck() {
-        return [
-            'status' => 'healthy',
-            'providers' => array_keys($this->providers),
-            'timestamp' => date('c'),
-            'version' => '1.0.0'
-        ];
+    private function checkRateLimit($clientIP) {
+        // 簡単なレート制限実装
+        $rateFile = __DIR__ . '/logs/rate_' . md5($clientIP) . '.txt';
+        $now = time();
+        $requests = [];
+        
+        if (file_exists($rateFile)) {
+            $requests = array_filter(
+                explode("\n", file_get_contents($rateFile)),
+                function($timestamp) use ($now) {
+                    return $timestamp && ($now - intval($timestamp)) < 60;
+                }
+            );
+        }
+        
+        if (count($requests) >= 60) {
+            return false;
+        }
+        
+        $requests[] = $now;
+        file_put_contents($rateFile, implode("\n", $requests));
+        
+        return true;
     }
 }
 
-// メイン処理
-try {
-    $hub = new LLMAPIHub();
-    
-    // ルーティング
-    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
-    $path = parse_url($requestUri, PHP_URL_PATH);
-    
-    switch ($path) {
-        case '/api.php':
-        case '/api.php/chat':
-            $hub->handleRequest();
-            break;
-            
-        case '/api.php/providers':
-            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-                sendJsonResponse($hub->getProviders());
-            } else {
-                sendErrorResponse('Method not allowed', 405);
-            }
-            break;
-            
-        case '/api.php/health':
-            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-                sendJsonResponse($hub->healthCheck());
-            } else {
-                sendErrorResponse('Method not allowed', 405);
-            }
-            break;
-            
-        default:
-            sendErrorResponse('Endpoint not found', 404);
-    }
-    
-} catch (Exception $e) {
-    sendErrorResponse('Internal server error', 500, [
-        'message' => $e->getMessage(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine()
-    ]);
-}
+// APIハブの初期化と実行
+$hub = new LLMAPIHub();
+$hub->handleRequest();
 ?>

@@ -10,8 +10,16 @@ document.addEventListener('DOMContentLoaded', function() {
     loadPersonaFromUrl();
     initializeEventListeners();
     loadChatHistory();
-    initializeGoogleAPI();
     checkApiKeysAndHideInputs();
+    
+    // Google APIの初期化は少し遅らせる
+    setTimeout(() => {
+        try {
+            initializeGoogleAPI();
+        } catch (error) {
+            console.log('Google API initialization failed:', error);
+        }
+    }, 1000);
 });
 
 // チャット初期化
@@ -469,34 +477,50 @@ function exportChatHistory() {
 
 // Google API初期化
 function initializeGoogleAPI() {
-    // Google APIが読み込まれていない場合は初期化しない
-    if (typeof gapi === 'undefined' || !gapi || !gapi.load) {
-        console.log('Google API is not loaded or not available');
+    // Google APIが読み込まれているかチェック
+    if (typeof window.gapi === 'undefined' || !window.gapi) {
+        console.log('Google API is not loaded');
         return;
     }
     
-    // クライアントIDが設定されているか確認
-    fetch('/persona/api.php?action=get_google_config')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch Google config');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.client_id && data.client_id !== '') {
-                gapi.load('auth2', function() {
-                    gapi.auth2.init({
-                        client_id: data.client_id
+    // gapiオブジェクトが完全に初期化されているかチェック
+    if (!window.gapi.load) {
+        console.log('Google API load function not available');
+        return;
+    }
+    
+    try {
+        // クライアントIDが設定されているか確認
+        fetch('/persona/api.php?action=get_google_config')
+            .then(response => {
+                if (!response.ok) {
+                    console.log('Google config request failed:', response.status);
+                    return null;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.client_id && data.client_id !== '') {
+                    window.gapi.load('auth2', function() {
+                        try {
+                            window.gapi.auth2.init({
+                                client_id: data.client_id
+                            });
+                            console.log('Google API initialized successfully');
+                        } catch (error) {
+                            console.log('Google auth2 init failed:', error);
+                        }
                     });
-                });
-            } else {
-                console.log('Google Client ID not configured');
-            }
-        })
-        .catch(error => {
-            console.log('Google API configuration not available:', error);
-        });
+                } else {
+                    console.log('Google Client ID not configured');
+                }
+            })
+            .catch(error => {
+                console.log('Google API configuration error:', error);
+            });
+    } catch (error) {
+        console.log('Google API initialization error:', error);
+    }
 }
 
 // APIキーの状態をチェックして入力フィールドを非表示にする
