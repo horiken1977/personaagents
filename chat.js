@@ -267,7 +267,7 @@ async function getAIResponse(userMessage) {
     const prompt = createPersonaPrompt(userMessage);
 
     try {
-        const response = await fetch('api.php', {
+        const response = await fetch('/persona/api.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -475,13 +475,27 @@ function exportChatHistory() {
 
 // Google API初期化
 function initializeGoogleAPI() {
-    if (typeof gapi !== 'undefined') {
-        gapi.load('auth2', function() {
-            gapi.auth2.init({
-                client_id: 'YOUR_GOOGLE_CLIENT_ID' // 実際のクライアントIDに置き換える
-            });
-        });
+    // Google APIが読み込まれていない場合は初期化しない
+    if (typeof gapi === 'undefined' || !gapi) {
+        console.log('Google API is not loaded');
+        return;
     }
+    
+    // クライアントIDが設定されているか確認
+    fetch('/persona/api.php?action=get_google_config')
+        .then(response => response.json())
+        .then(data => {
+            if (data.client_id && data.client_id !== '') {
+                gapi.load('auth2', function() {
+                    gapi.auth2.init({
+                        client_id: data.client_id
+                    });
+                });
+            }
+        })
+        .catch(error => {
+            console.log('Google API configuration not available:', error);
+        });
 }
 
 // Google Sheets関連

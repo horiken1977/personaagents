@@ -19,6 +19,18 @@ class LLMAPIHub {
      */
     public function handleRequest() {
         try {
+            // GETリクエストの処理（Google設定の取得など）
+            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                $action = $_GET['action'] ?? '';
+                if ($action === 'get_google_config') {
+                    $config = GOOGLE_API_CONFIG;
+                    sendJsonResponse([
+                        'client_id' => $config['client_id'] ?? ''
+                    ]);
+                    return;
+                }
+            }
+            
             // リクエストメソッドの確認
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 throw new Exception('Only POST method is allowed', 405);

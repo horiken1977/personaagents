@@ -21,6 +21,17 @@ Options -Indexes
     Deny from all
 </Files>
 
+# URLリライト
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /persona/
+    
+    # API エンドポイント
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^api/(.*)$ api.php [QSA,L]
+</IfModule>
+
 # エラーページ
 ErrorDocument 404 /persona/error.php?code=404
 ErrorDocument 500 /persona/error.php?code=500

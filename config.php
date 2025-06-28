@@ -70,16 +70,41 @@ const LLM_PROVIDERS = [
     ]
 ];
 
+// Google API設定を動的に生成
+function getGoogleApiConfig() {
+    $config = [
+        'client_id' => '',
+        'client_secret' => '',
+        'redirect_uri' => 'https://mokumoku.sakura.ne.jp/persona/google_auth.php',
+        'scopes' => [
+            'https://www.googleapis.com/auth/spreadsheets',
+            'https://www.googleapis.com/auth/drive.file'
+        ]
+    ];
+    
+    // JSONファイルから読み込み
+    $apiKeysFile = __DIR__ . '/api_keys.json';
+    if (file_exists($apiKeysFile)) {
+        $keys = json_decode(file_get_contents($apiKeysFile), true);
+        if ($keys) {
+            $config['client_id'] = $keys['google_client_id'] ?? '';
+            $config['client_secret'] = $keys['google_client_secret'] ?? '';
+        }
+    }
+    
+    // 環境変数からも読み込み（優先度低）
+    if (empty($config['client_id'])) {
+        $config['client_id'] = getenv('GOOGLE_CLIENT_ID') ?: '';
+    }
+    if (empty($config['client_secret'])) {
+        $config['client_secret'] = getenv('GOOGLE_CLIENT_SECRET') ?: '';
+    }
+    
+    return $config;
+}
+
 // Google API設定
-define('GOOGLE_API_CONFIG', [
-    'client_id' => getenv('GOOGLE_CLIENT_ID') ?: '',
-    'client_secret' => getenv('GOOGLE_CLIENT_SECRET') ?: '',
-    'redirect_uri' => getenv('GOOGLE_REDIRECT_URI') ?: 'https://mokumoku.sakura.ne.jp/persona/google_auth.php',
-    'scopes' => [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive.file'
-    ]
-]);
+define('GOOGLE_API_CONFIG', getGoogleApiConfig());
 
 // セキュリティ設定
 const SECURITY_CONFIG = [
