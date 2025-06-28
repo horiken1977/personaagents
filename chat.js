@@ -712,7 +712,40 @@ async function saveToSheets() {
                 })
             });
             
-            // ヘッダーを追加
+            console.log('新しいスプレッドシートを作成しました:', spreadsheetId);
+        }
+        
+        // 現在のデータ範囲を取得して最終行を特定
+        const rangeResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A:F`, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+        
+        let nextRow = 2; // ヘッダーの次の行から開始
+        let existingData = [];
+        let hasHeaders = false;
+        
+        if (rangeResponse.ok) {
+            const rangeData = await rangeResponse.json();
+            if (rangeData.values && rangeData.values.length > 0) {
+                // 最初の行がヘッダーかどうかチェック
+                const firstRow = rangeData.values[0];
+                hasHeaders = firstRow.includes('タイムスタンプ') || firstRow.includes('Googleアカウント');
+                
+                if (hasHeaders) {
+                    existingData = rangeData.values.slice(1); // ヘッダーを除く既存データ
+                    nextRow = rangeData.values.length + 1; // 最終行の次の行
+                } else {
+                    existingData = rangeData.values; // 全てがデータ行
+                    nextRow = rangeData.values.length + 2; // ヘッダー分も考慮
+                }
+            }
+        }
+        
+        // ヘッダーが存在しない場合は追加
+        if (!hasHeaders) {
+            console.log('ヘッダーが存在しないため、追加します...');
             const headers = ['タイムスタンプ', 'Googleアカウント', 'LLM名', 'ペルソナ名', '質問', '回答'];
             await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A1:F1?valueInputOption=RAW`, {
                 method: 'PUT',
@@ -725,44 +758,63 @@ async function saveToSheets() {
                 })
             });
             
-            console.log('新しいスプレッドシートを作成しました:', spreadsheetId);
+            // 既存のデータがある場合は1行下にシフト
+            if (existingData.length > 0) {
+                await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A2:F${existingData.length + 1}?valueInputOption=RAW`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        values: existingData
+                    })
+                });
+                nextRow = existingData.length + 2;
+            } else {
+                nextRow = 2;
+            }
         }
         
-        // 現在のデータ範囲を取得して最終行を特定
-        const rangeResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A:F`, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
+        // 既存データと比較して新しい対話のみを特定
+        const newRows = [];
+        
+        chatHistory.forEach(item => {
+            const rowData = [
+                new Date(item.timestamp).toLocaleString('ja-JP'),
+                userInfo.email,
+                llmProvider.toUpperCase(),
+                item.personaName || currentPersona?.name || '',
+                item.question || '',
+                item.answer || ''
+            ];
+            
+            // 既存データに同じタイムスタンプと質問の組み合わせがないかチェック
+            const isDuplicate = existingData.some(existingRow => 
+                existingRow[0] === rowData[0] && // タイムスタンプ
+                existingRow[4] === rowData[4]    // 質問
+            );
+            
+            if (!isDuplicate) {
+                newRows.push(rowData);
             }
         });
         
-        let nextRow = 1; // デフォルトは1行目（ヘッダー用）
-        if (rangeResponse.ok) {
-            const rangeData = await rangeResponse.json();
-            if (rangeData.values && rangeData.values.length > 0) {
-                nextRow = rangeData.values.length + 1; // 最終行の次の行
-            }
+        if (newRows.length === 0) {
+            showSuccessMessage('新しいデータがないため、保存をスキップしました。');
+            closeSheetsModal();
+            return;
         }
-        
-        // 新しいデータを準備（最新の対話のみ）
-        const latestChat = chatHistory[chatHistory.length - 1];
-        const newRow = [
-            new Date(latestChat.timestamp).toLocaleString('ja-JP'),
-            userInfo.email,
-            llmProvider.toUpperCase(),
-            latestChat.personaName || currentPersona?.name || '',
-            latestChat.question || '',
-            latestChat.answer || ''
-        ];
 
-        // データを追加
-        const appendResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A${nextRow}:F${nextRow}?valueInputOption=RAW`, {
+        // 新しいデータを一括追加
+        const appendResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A${nextRow}:F${nextRow + newRows.length - 1}?valueInputOption=RAW`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                values: [newRow]
+                values: newRows
             })
         });
 
@@ -771,7 +823,7 @@ async function saveToSheets() {
             throw new Error(`データ追加に失敗: ${appendResponse.status} - ${errorData.error?.message || appendResponse.statusText}`);
         }
 
-        showSuccessMessage('対話データをGoogle Sheetsに保存しました。');
+        showSuccessMessage(`${newRows.length}件の対話データをGoogle Sheetsに保存しました。`);
         closeSheetsModal();
         
         // スプレッドシートを開くオプション
