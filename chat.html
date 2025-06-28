@@ -149,24 +149,66 @@
                     this.initializing = true;
                     console.log('Starting Google API initialization...');
                     
-                    // Auth2ライブラリのポーリング（gapi.loadを使わない）
-                    let attempts = 0;
-                    const maxAttempts = 30;
+                    // gapiが利用可能になるまで待機
+                    let gapiWaitAttempts = 0;
+                    const maxGapiWait = 10;
                     
-                    while (attempts < maxAttempts) {
-                        if (window.gapi && window.gapi.auth2) {
-                            console.log('Google Auth2 library found');
+                    while (gapiWaitAttempts < maxGapiWait) {
+                        if (window.gapi && window.gapi.load) {
+                            console.log('Google API (gapi) ready');
                             break;
                         }
                         
-                        attempts++;
-                        console.log(`Polling for Google Auth2... (${attempts}/${maxAttempts})`);
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        gapiWaitAttempts++;
+                        console.log(`Waiting for gapi... (${gapiWaitAttempts}/${maxGapiWait})`);
+                        await new Promise(resolve => setTimeout(resolve, 500));
                     }
                     
-                    if (attempts >= maxAttempts) {
-                        throw new Error('Google Auth2 library not available');
+                    if (gapiWaitAttempts >= maxGapiWait) {
+                        throw new Error('Google API (gapi) not available');
                     }
+                    
+                    // Auth2ライブラリを明示的に読み込み（安全な方法）
+                    console.log('Loading Google Auth2 library...');
+                    await new Promise((resolve, reject) => {
+                        const timeoutId = setTimeout(() => {
+                            reject(new Error('Auth2 library loading timeout'));
+                        }, 15000);
+                        
+                        // 一意のコールバック名を生成
+                        const callbackName = 'gapiAuth2Callback_' + Date.now();
+                        
+                        // グローバルコールバックを設定
+                        window[callbackName] = function() {
+                            clearTimeout(timeoutId);
+                            delete window[callbackName]; // クリーンアップ
+                            console.log('Google Auth2 library loaded successfully');
+                            resolve();
+                        };
+                        
+                        try {
+                            // シンプルなload呼び出し
+                            window.gapi.load('auth2', callbackName);
+                        } catch (loadError) {
+                            clearTimeout(timeoutId);
+                            delete window[callbackName];
+                            console.error('gapi.load failed:', loadError);
+                            reject(new Error('gapi.load failed: ' + loadError.message));
+                        }
+                    });
+                    
+                    // Auth2が利用可能になったことを確認
+                    if (!window.gapi.auth2) {
+                        // 代替手段：少し待ってから再確認
+                        console.log('Auth2 not immediately available, waiting...');
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
+                        if (!window.gapi.auth2) {
+                            throw new Error('Auth2 library loaded but not available after waiting');
+                        }
+                    }
+                    
+                    console.log('Google Auth2 library confirmed available');
                     
                     // 設定取得
                     const response = await fetch('/persona/api.php?action=get_google_config');
@@ -181,11 +223,33 @@
                     
                     console.log('Initializing Google Auth2 with Client ID:', configData.client_id.substring(0, 20) + '...');
                     
-                    // Auth2初期化
-                    const authInstance = await window.gapi.auth2.init({
-                        client_id: configData.client_id,
-                        scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
-                    });
+                    // 既存のインスタンスをチェック
+                    let authInstance = null;
+                    try {
+                        authInstance = window.gapi.auth2.getAuthInstance();
+                        if (authInstance && typeof authInstance.isSignedIn === 'function') {
+                            console.log('Using existing Auth2 instance');
+                        } else {
+                            authInstance = null;
+                        }
+                    } catch (e) {
+                        console.log('No existing Auth2 instance found');
+                        authInstance = null;
+                    }
+                    
+                    // 新規初期化またはインスタンス取得
+                    if (!authInstance) {
+                        console.log('Creating new Auth2 instance...');
+                        authInstance = await window.gapi.auth2.init({
+                            client_id: configData.client_id,
+                            scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
+                        });
+                    }
+                    
+                    // 最終確認
+                    if (!authInstance || typeof authInstance.isSignedIn !== 'function') {
+                        throw new Error('Auth2 instance initialization failed');
+                    }
                     
                     this.initialized = true;
                     this.authReady = true;
