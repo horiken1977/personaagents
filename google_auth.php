@@ -13,7 +13,7 @@ class GoogleAuthenticator {
     private $scopes;
     
     public function __construct() {
-        $config = getConfig('google_api');
+        $config = GOOGLE_API_CONFIG;
         $this->clientId = $config['client_id'];
         $this->clientSecret = $config['client_secret'];
         $this->redirectUri = $config['redirect_uri'];

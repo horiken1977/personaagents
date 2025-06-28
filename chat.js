@@ -540,13 +540,19 @@ function initializeGoogleAPI() {
             })
             .then(data => {
                 if (data && data.client_id && data.client_id !== '') {
-                    window.gapi.load('auth2', function() {
+                    // gapi.load で auth2 と client を同時に読み込み
+                    window.gapi.load('auth2:client', function() {
                         try {
                             window.gapi.auth2.init({
-                                client_id: data.client_id
+                                client_id: data.client_id,
+                                scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
+                            }).then(function() {
+                                console.log('Google API initialized successfully');
+                                enableGoogleFeatures();
+                            }).catch(function(error) {
+                                console.log('Google auth2 init failed:', error);
+                                disableGoogleFeatures();
                             });
-                            console.log('Google API initialized successfully');
-                            enableGoogleFeatures();
                         } catch (error) {
                             console.log('Google auth2 init failed:', error);
                             disableGoogleFeatures();
@@ -647,32 +653,43 @@ async function authenticateGoogle() {
     try {
         showLoadingOverlay();
         
-        // Google OAuth2認証の実装
-        // 実際の実装では、google_auth.php を通じて認証を行う
-        const response = await fetch('google_auth.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'authenticate'
-            })
-        });
-
-        const data = await response.json();
+        // Google APIが初期化されているかチェック
+        if (!window.gapi || !window.gapi.auth2) {
+            throw new Error('Google APIが初期化されていません。ページを再読み込みしてください。');
+        }
         
-        if (data.success) {
+        // 認証インスタンスを取得
+        const authInstance = window.gapi.auth2.getAuthInstance();
+        if (!authInstance) {
+            throw new Error('Google認証インスタンスが見つかりません。');
+        }
+        
+        // ユーザーがサインインしているかチェック
+        if (authInstance.isSignedIn.get()) {
+            // 既にサインイン済み
             isAuthenticated = true;
             updateAuthStatus(true);
             document.getElementById('saveNowBtn').disabled = false;
             showSuccessMessage('Google認証が完了しました。');
         } else {
-            throw new Error(data.error || '認証に失敗しました。');
+            // サインインを開始
+            const user = await authInstance.signIn({
+                scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
+            });
+            
+            if (user && user.isSignedIn()) {
+                isAuthenticated = true;
+                updateAuthStatus(true);
+                document.getElementById('saveNowBtn').disabled = false;
+                showSuccessMessage('Google認証が完了しました。');
+            } else {
+                throw new Error('認証がキャンセルされました。');
+            }
         }
 
     } catch (error) {
         console.error('Google認証エラー:', error);
-        showErrorMessage('Google認証に失敗しました。');
+        showErrorMessage('Google認証に失敗しました: ' + error.message);
     } finally {
         hideLoadingOverlay();
     }
@@ -692,32 +709,95 @@ async function saveToSheets() {
     try {
         showLoadingOverlay();
 
-        const spreadsheetId = document.getElementById('spreadsheetId').value.trim();
-        
-        const response = await fetch('sheets_integration.php', {
+        // Google Sheets APIクライアントが初期化されているかチェック
+        if (!window.gapi || !window.gapi.client) {
+            // gapi.clientを初期化
+            await new Promise((resolve, reject) => {
+                window.gapi.load('client', {
+                    callback: resolve,
+                    onerror: reject
+                });
+            });
+        }
+
+        // Google Sheets APIを初期化
+        if (!window.gapi.client.sheets) {
+            await window.gapi.client.init({
+                discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
+            });
+        }
+
+        // アクセストークンを取得
+        const authInstance = window.gapi.auth2.getAuthInstance();
+        const currentUser = authInstance.currentUser.get();
+        const accessToken = currentUser.getAuthResponse().access_token;
+
+        // 新しいスプレッドシートを作成
+        const createResponse = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                action: 'save',
-                spreadsheetId: spreadsheetId,
-                data: chatHistory
+                properties: {
+                    title: `PersonaAgent対話履歴_${new Date().toLocaleDateString('ja-JP')}`
+                },
+                sheets: [{
+                    properties: {
+                        title: 'チャット履歴'
+                    }
+                }]
             })
         });
 
-        const result = await response.json();
+        if (!createResponse.ok) {
+            throw new Error(`スプレッドシート作成に失敗: ${createResponse.status}`);
+        }
+
+        const createResult = await createResponse.json();
+        const spreadsheetId = createResult.spreadsheetId;
         
-        if (result.success) {
-            showSuccessMessage(`データをGoogle Sheetsに保存しました。スプレッドシートID: ${result.spreadsheetId}`);
-            closeSheetsModal();
-        } else {
-            throw new Error(result.error || '保存に失敗しました。');
+        // データを準備
+        const headers = ['タイムスタンプ', 'ペルソナ名', '質問', '回答'];
+        const rows = [headers];
+        
+        chatHistory.forEach(item => {
+            rows.push([
+                new Date(item.timestamp).toLocaleString('ja-JP'),
+                item.personaName || '',
+                item.question || '',
+                item.answer || ''
+            ]);
+        });
+
+        // データを挿入
+        const updateResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A1:D${rows.length}?valueInputOption=RAW`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                values: rows
+            })
+        });
+
+        if (!updateResponse.ok) {
+            throw new Error(`データ挿入に失敗: ${updateResponse.status}`);
+        }
+
+        showSuccessMessage(`データをGoogle Sheetsに保存しました。\nスプレッドシートID: ${spreadsheetId}`);
+        closeSheetsModal();
+        
+        // スプレッドシートを開くオプション
+        if (confirm('作成されたスプレッドシートを開きますか？')) {
+            window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`, '_blank');
         }
 
     } catch (error) {
         console.error('Sheets保存エラー:', error);
-        showErrorMessage('Google Sheetsへの保存に失敗しました。');
+        showErrorMessage('Google Sheetsへの保存に失敗しました: ' + error.message);
     } finally {
         hideLoadingOverlay();
     }
