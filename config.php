@@ -57,7 +57,7 @@ const LLM_PROVIDERS = [
     'claude' => [
         'name' => 'Anthropic Claude',
         'endpoint' => 'https://api.anthropic.com/v1/messages',
-        'model' => 'claude-3-sonnet-20240229',
+        'model' => 'claude-3-haiku-20240307',
         'max_tokens' => 1000,
         'temperature' => 0.7
     ],
@@ -159,18 +159,27 @@ function getApiKey($provider) {
     // まずJSONファイルから読み込みを試みる
     $apiKeysFile = __DIR__ . '/api_keys.json';
     if (file_exists($apiKeysFile)) {
-        $keys = json_decode(file_get_contents($apiKeysFile), true);
-        if ($keys) {
-            switch ($provider) {
-                case 'openai':
-                    if (!empty($keys['openai'])) return $keys['openai'];
-                    break;
-                case 'claude':
-                    if (!empty($keys['anthropic'])) return $keys['anthropic'];
-                    break;
-                case 'gemini':
-                    if (!empty($keys['google'])) return $keys['google'];
-                    break;
+        $content = file_get_contents($apiKeysFile);
+        if ($content) {
+            $keys = json_decode($content, true);
+            if ($keys && is_array($keys)) {
+                switch ($provider) {
+                    case 'openai':
+                        if (isset($keys['openai']) && !empty(trim($keys['openai']))) {
+                            return trim($keys['openai']);
+                        }
+                        break;
+                    case 'claude':
+                        if (isset($keys['anthropic']) && !empty(trim($keys['anthropic']))) {
+                            return trim($keys['anthropic']);
+                        }
+                        break;
+                    case 'gemini':
+                        if (isset($keys['google']) && !empty(trim($keys['google']))) {
+                            return trim($keys['google']);
+                        }
+                        break;
+                }
             }
         }
     }
@@ -178,11 +187,14 @@ function getApiKey($provider) {
     // JSONファイルになければ環境変数から取得
     switch ($provider) {
         case 'openai':
-            return getenv('OPENAI_API_KEY');
+            $key = getenv('OPENAI_API_KEY');
+            return $key ? trim($key) : null;
         case 'claude':
-            return getenv('ANTHROPIC_API_KEY');
+            $key = getenv('ANTHROPIC_API_KEY');
+            return $key ? trim($key) : null;
         case 'gemini':
-            return getenv('GOOGLE_AI_API_KEY');
+            $key = getenv('GOOGLE_AI_API_KEY');
+            return $key ? trim($key) : null;
         default:
             return null;
     }

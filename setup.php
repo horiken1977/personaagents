@@ -22,8 +22,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // JSONファイルに保存
         file_put_contents($apiKeysFile, json_encode($keys, JSON_PRETTY_PRINT));
         
-        // 成功メッセージ
-        $message = ['type' => 'success', 'text' => 'APIキーが保存されました。'];
+        // 成功メッセージと自動リダイレクト
+        $message = ['type' => 'success', 'text' => 'APIキーが保存されました。3秒後にメインページに移動します。'];
+        
+        // APIキーが設定されているかチェック
+        $hasApiKeys = false;
+        $providers = ['openai', 'claude', 'gemini'];
+        foreach ($providers as $provider) {
+            if (getApiKey($provider)) {
+                $hasApiKeys = true;
+                break;
+            }
+        }
+        
+        // 自動リダイレクトのフラグ
+        $autoRedirect = $hasApiKeys;
     } elseif ($action === 'test_api') {
         // API疎通テスト
         header('Content-Type: application/json');
@@ -332,6 +345,13 @@ function testGoogleAI($apiKey) {
         <div class="message <?php echo $message['type']; ?>">
             <?php echo htmlspecialchars($message['text']); ?>
         </div>
+        <?php if (isset($autoRedirect) && $autoRedirect): ?>
+        <script>
+            setTimeout(() => {
+                window.location.href = 'index.php';
+            }, 3000);
+        </script>
+        <?php endif; ?>
         <?php endif; ?>
         
         <form method="POST" id="setupForm">
