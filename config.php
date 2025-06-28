@@ -47,7 +47,7 @@ const LLM_PROVIDERS = [
 ];
 
 // Google API設定
-const GOOGLE_API_CONFIG = [
+$GOOGLE_API_CONFIG = [
     'client_id' => getenv('GOOGLE_CLIENT_ID') ?: '',
     'client_secret' => getenv('GOOGLE_CLIENT_SECRET') ?: '',
     'redirect_uri' => getenv('GOOGLE_REDIRECT_URI') ?: 'http://localhost/agetsite/google_auth.php',
@@ -73,14 +73,14 @@ const SECURITY_CONFIG = [
 ];
 
 // ログ設定
-const LOG_CONFIG = [
+$LOG_CONFIG = [
     'error_log' => __DIR__ . '/logs/error.log',
     'access_log' => __DIR__ . '/logs/access.log',
     'debug_mode' => getenv('DEBUG_MODE') === 'true'
 ];
 
 // データベース設定（将来の拡張用）
-const DB_CONFIG = [
+$DB_CONFIG = [
     'host' => getenv('DB_HOST') ?: 'localhost',
     'name' => getenv('DB_NAME') ?: 'agetsite',
     'user' => getenv('DB_USER') ?: 'root',
