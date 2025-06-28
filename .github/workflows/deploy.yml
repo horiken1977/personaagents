@@ -22,16 +22,6 @@ jobs:
         local_path: './'
         remote_path: ${{ secrets.SSH_REMOTE_PATH }}
         sftpArgs: '-o ConnectTimeout=5'
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          .DS_Store
-          README.md
-          .env
-          .env.*
-          logs/
-          *.log
         
     - name: Deployment notification
       run: |
