@@ -13,13 +13,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Deploy via FTP
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+    - name: Deploy via SFTP
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
       with:
-        server: ${{ secrets.FTP_HOST }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: ${{ secrets.FTP_SERVER_DIR }}
+        server: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        local_path: './'
+        remote_path: ${{ secrets.SSH_REMOTE_PATH }}
+        sftpArgs: '-o ConnectTimeout=5'
         exclude: |
           **/.git*
           **/.git*/**
