@@ -119,69 +119,133 @@
     </div>
 
     <script>
-        // Google APIの状態管理
-        window.googleApiState = {
+        // Google APIの状態管理（シングルインスタンス）
+        window.googleApiManager = {
             loaded: false,
             error: false,
+            initializing: false,
             initialized: false,
-            authReady: false
-        };
-        
-        // Google APIの初期化コールバック
-        window.handleGoogleApiLoad = function() {
-            console.log('Google API load callback triggered');
-            window.googleApiState.loaded = true;
+            authReady: false,
+            initPromise: null,
             
-            // Chat.jsが読み込まれている場合は初期化を開始
-            if (window.initializeGoogleAPIAfterLoad) {
-                window.initializeGoogleAPIAfterLoad();
+            // 初期化ロック（重複防止）
+            init: async function() {
+                if (this.initPromise) {
+                    console.log('Google API initialization already in progress, waiting...');
+                    return this.initPromise;
+                }
+                
+                if (this.initialized) {
+                    console.log('Google API already initialized');
+                    return Promise.resolve();
+                }
+                
+                this.initPromise = this._performInit();
+                return this.initPromise;
+            },
+            
+            _performInit: async function() {
+                try {
+                    this.initializing = true;
+                    console.log('Starting Google API initialization...');
+                    
+                    // Auth2ライブラリのポーリング（gapi.loadを使わない）
+                    let attempts = 0;
+                    const maxAttempts = 30;
+                    
+                    while (attempts < maxAttempts) {
+                        if (window.gapi && window.gapi.auth2) {
+                            console.log('Google Auth2 library found');
+                            break;
+                        }
+                        
+                        attempts++;
+                        console.log(`Polling for Google Auth2... (${attempts}/${maxAttempts})`);
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                    
+                    if (attempts >= maxAttempts) {
+                        throw new Error('Google Auth2 library not available');
+                    }
+                    
+                    // 設定取得
+                    const response = await fetch('/persona/api.php?action=get_google_config');
+                    if (!response.ok) {
+                        throw new Error('Failed to get Google config');
+                    }
+                    
+                    const configData = await response.json();
+                    if (!configData || !configData.client_id) {
+                        throw new Error('Google Client ID not configured');
+                    }
+                    
+                    console.log('Initializing Google Auth2 with Client ID:', configData.client_id.substring(0, 20) + '...');
+                    
+                    // Auth2初期化
+                    const authInstance = await window.gapi.auth2.init({
+                        client_id: configData.client_id,
+                        scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
+                    });
+                    
+                    this.initialized = true;
+                    this.authReady = true;
+                    console.log('Google API initialized successfully');
+                    
+                    // Google Sheetsボタンを有効化
+                    if (window.enableGoogleFeatures) {
+                        window.enableGoogleFeatures();
+                    }
+                    
+                } catch (error) {
+                    this.error = true;
+                    console.error('Google API initialization failed:', error);
+                    
+                    // Google Sheetsボタンを無効化
+                    if (window.disableGoogleFeatures) {
+                        window.disableGoogleFeatures();
+                    }
+                    
+                    throw error;
+                } finally {
+                    this.initializing = false;
+                }
             }
         };
         
-        // Google API読み込み関数
-        function loadGoogleAPI() {
+        // Google APIスクリプトの読み込み
+        function loadGoogleAPIScript() {
             return new Promise((resolve, reject) => {
-                if (window.googleApiState.loaded) {
+                if (window.gapi) {
+                    console.log('Google API already loaded');
                     resolve();
                     return;
                 }
                 
                 const script = document.createElement('script');
-                script.src = 'https://apis.google.com/js/api.js?onload=handleGoogleApiLoad';
+                script.src = 'https://apis.google.com/js/api.js';
+                script.onload = () => {
+                    console.log('Google API script loaded');
+                    window.googleApiManager.loaded = true;
+                    resolve();
+                };
                 script.onerror = () => {
-                    window.googleApiState.error = true;
                     console.error('Failed to load Google API script');
+                    window.googleApiManager.error = true;
                     reject(new Error('Google APIスクリプトの読み込みに失敗しました'));
                 };
-                
-                // タイムアウト処理
-                const timeout = setTimeout(() => {
-                    if (!window.googleApiState.loaded) {
-                        window.googleApiState.error = true;
-                        reject(new Error('Google APIスクリプトの読み込みがタイムアウトしました'));
-                    }
-                }, 10000);
-                
-                // 成功時の処理
-                const checkLoaded = () => {
-                    if (window.googleApiState.loaded) {
-                        clearTimeout(timeout);
-                        resolve();
-                    } else {
-                        setTimeout(checkLoaded, 100);
-                    }
-                };
-                checkLoaded();
                 
                 document.head.appendChild(script);
             });
         }
         
-        // ページ読み込み時にGoogle APIを読み込み
-        document.addEventListener('DOMContentLoaded', function() {
-            loadGoogleAPI().catch(error => {
-                console.error('Google API loading error:', error);
-            });
+        // ページ読み込み時の処理
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await loadGoogleAPIScript();
+                console.log('Google API script ready, waiting for Chat.js...');
+            } catch (error) {
+                console.error('Google API script loading failed:', error);
+            }
         });
     </script>
     <script src="chat.js"></script>
