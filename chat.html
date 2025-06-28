@@ -119,24 +119,25 @@
     </div>
 
     <script>
-        // Google APIの状態管理（シングルインスタンス）
-        window.googleApiManager = {
+        // Google Identity Services (GIS) マネージャー
+        window.googleGISManager = {
             loaded: false,
             error: false,
             initializing: false,
             initialized: false,
-            authReady: false,
+            clientId: null,
+            tokenClient: null,
             initPromise: null,
             
             // 初期化ロック（重複防止）
             init: async function() {
                 if (this.initPromise) {
-                    console.log('Google API initialization already in progress, waiting...');
+                    console.log('Google GIS initialization already in progress, waiting...');
                     return this.initPromise;
                 }
                 
                 if (this.initialized) {
-                    console.log('Google API already initialized');
+                    console.log('Google GIS already initialized');
                     return Promise.resolve();
                 }
                 
@@ -147,68 +148,26 @@
             _performInit: async function() {
                 try {
                     this.initializing = true;
-                    console.log('Starting Google API initialization...');
+                    console.log('Starting Google Identity Services initialization...');
                     
-                    // gapiが利用可能になるまで待機
-                    let gapiWaitAttempts = 0;
-                    const maxGapiWait = 10;
+                    // Google Identity Services が利用可能になるまで待機
+                    let gisWaitAttempts = 0;
+                    const maxGisWait = 20;
                     
-                    while (gapiWaitAttempts < maxGapiWait) {
-                        if (window.gapi && window.gapi.load) {
-                            console.log('Google API (gapi) ready');
+                    while (gisWaitAttempts < maxGisWait) {
+                        if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+                            console.log('Google Identity Services ready');
                             break;
                         }
                         
-                        gapiWaitAttempts++;
-                        console.log(`Waiting for gapi... (${gapiWaitAttempts}/${maxGapiWait})`);
+                        gisWaitAttempts++;
+                        console.log(`Waiting for Google Identity Services... (${gisWaitAttempts}/${maxGisWait})`);
                         await new Promise(resolve => setTimeout(resolve, 500));
                     }
                     
-                    if (gapiWaitAttempts >= maxGapiWait) {
-                        throw new Error('Google API (gapi) not available');
+                    if (gisWaitAttempts >= maxGisWait) {
+                        throw new Error('Google Identity Services not available');
                     }
-                    
-                    // Auth2ライブラリを明示的に読み込み（安全な方法）
-                    console.log('Loading Google Auth2 library...');
-                    await new Promise((resolve, reject) => {
-                        const timeoutId = setTimeout(() => {
-                            reject(new Error('Auth2 library loading timeout'));
-                        }, 15000);
-                        
-                        // 一意のコールバック名を生成
-                        const callbackName = 'gapiAuth2Callback_' + Date.now();
-                        
-                        // グローバルコールバックを設定
-                        window[callbackName] = function() {
-                            clearTimeout(timeoutId);
-                            delete window[callbackName]; // クリーンアップ
-                            console.log('Google Auth2 library loaded successfully');
-                            resolve();
-                        };
-                        
-                        try {
-                            // シンプルなload呼び出し
-                            window.gapi.load('auth2', callbackName);
-                        } catch (loadError) {
-                            clearTimeout(timeoutId);
-                            delete window[callbackName];
-                            console.error('gapi.load failed:', loadError);
-                            reject(new Error('gapi.load failed: ' + loadError.message));
-                        }
-                    });
-                    
-                    // Auth2が利用可能になったことを確認
-                    if (!window.gapi.auth2) {
-                        // 代替手段：少し待ってから再確認
-                        console.log('Auth2 not immediately available, waiting...');
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        
-                        if (!window.gapi.auth2) {
-                            throw new Error('Auth2 library loaded but not available after waiting');
-                        }
-                    }
-                    
-                    console.log('Google Auth2 library confirmed available');
                     
                     // 設定取得
                     const response = await fetch('/persona/api.php?action=get_google_config');
@@ -221,39 +180,26 @@
                         throw new Error('Google Client ID not configured');
                     }
                     
-                    console.log('Initializing Google Auth2 with Client ID:', configData.client_id.substring(0, 20) + '...');
+                    this.clientId = configData.client_id;
+                    console.log('Initializing Google Identity Services with Client ID:', this.clientId.substring(0, 20) + '...');
                     
-                    // 既存のインスタンスをチェック
-                    let authInstance = null;
-                    try {
-                        authInstance = window.gapi.auth2.getAuthInstance();
-                        if (authInstance && typeof authInstance.isSignedIn === 'function') {
-                            console.log('Using existing Auth2 instance');
-                        } else {
-                            authInstance = null;
+                    // OAuth2 Token Client を初期化
+                    this.tokenClient = window.google.accounts.oauth2.initTokenClient({
+                        client_id: this.clientId,
+                        scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
+                        callback: (response) => {
+                            if (response.error) {
+                                console.error('Token request failed:', response.error);
+                                this._handleTokenError(response.error);
+                            } else {
+                                console.log('Token received successfully');
+                                this._handleTokenSuccess(response);
+                            }
                         }
-                    } catch (e) {
-                        console.log('No existing Auth2 instance found');
-                        authInstance = null;
-                    }
-                    
-                    // 新規初期化またはインスタンス取得
-                    if (!authInstance) {
-                        console.log('Creating new Auth2 instance...');
-                        authInstance = await window.gapi.auth2.init({
-                            client_id: configData.client_id,
-                            scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
-                        });
-                    }
-                    
-                    // 最終確認
-                    if (!authInstance || typeof authInstance.isSignedIn !== 'function') {
-                        throw new Error('Auth2 instance initialization failed');
-                    }
+                    });
                     
                     this.initialized = true;
-                    this.authReady = true;
-                    console.log('Google API initialized successfully');
+                    console.log('Google Identity Services initialized successfully');
                     
                     // Google Sheetsボタンを有効化
                     if (window.enableGoogleFeatures) {
@@ -262,7 +208,7 @@
                     
                 } catch (error) {
                     this.error = true;
-                    console.error('Google API initialization failed:', error);
+                    console.error('Google Identity Services initialization failed:', error);
                     
                     // Google Sheetsボタンを無効化
                     if (window.disableGoogleFeatures) {
@@ -273,29 +219,62 @@
                 } finally {
                     this.initializing = false;
                 }
+            },
+            
+            // トークン要求
+            requestAccessToken: function() {
+                return new Promise((resolve, reject) => {
+                    if (!this.tokenClient) {
+                        reject(new Error('Token client not initialized'));
+                        return;
+                    }
+                    
+                    // コールバックを一時的に保存
+                    this._tokenResolve = resolve;
+                    this._tokenReject = reject;
+                    
+                    // トークン要求を開始
+                    this.tokenClient.requestAccessToken();
+                });
+            },
+            
+            _handleTokenSuccess: function(response) {
+                if (this._tokenResolve) {
+                    this._tokenResolve(response.access_token);
+                    this._tokenResolve = null;
+                    this._tokenReject = null;
+                }
+            },
+            
+            _handleTokenError: function(error) {
+                if (this._tokenReject) {
+                    this._tokenReject(new Error(error));
+                    this._tokenResolve = null;
+                    this._tokenReject = null;
+                }
             }
         };
         
-        // Google APIスクリプトの読み込み
-        function loadGoogleAPIScript() {
+        // Google Identity Services スクリプトの読み込み
+        function loadGoogleGISScript() {
             return new Promise((resolve, reject) => {
-                if (window.gapi) {
-                    console.log('Google API already loaded');
+                if (window.google && window.google.accounts) {
+                    console.log('Google Identity Services already loaded');
                     resolve();
                     return;
                 }
                 
                 const script = document.createElement('script');
-                script.src = 'https://apis.google.com/js/api.js';
+                script.src = 'https://accounts.google.com/gsi/client';
                 script.onload = () => {
-                    console.log('Google API script loaded');
-                    window.googleApiManager.loaded = true;
+                    console.log('Google Identity Services script loaded');
+                    window.googleGISManager.loaded = true;
                     resolve();
                 };
                 script.onerror = () => {
-                    console.error('Failed to load Google API script');
-                    window.googleApiManager.error = true;
-                    reject(new Error('Google APIスクリプトの読み込みに失敗しました'));
+                    console.error('Failed to load Google Identity Services script');
+                    window.googleGISManager.error = true;
+                    reject(new Error('Google Identity Servicesスクリプトの読み込みに失敗しました'));
                 };
                 
                 document.head.appendChild(script);
@@ -305,10 +284,10 @@
         // ページ読み込み時の処理
         document.addEventListener('DOMContentLoaded', async function() {
             try {
-                await loadGoogleAPIScript();
-                console.log('Google API script ready, waiting for Chat.js...');
+                await loadGoogleGISScript();
+                console.log('Google Identity Services script ready, waiting for Chat.js...');
             } catch (error) {
-                console.error('Google API script loading failed:', error);
+                console.error('Google Identity Services script loading failed:', error);
             }
         });
     </script>

@@ -12,16 +12,17 @@ document.addEventListener('DOMContentLoaded', function() {
     loadChatHistory();
     checkApiKeysAndHideInputs();
     
-    // 新しいGoogle APIマネージャーを使用
-    if (window.googleApiManager) {
-        console.log('Starting Google API initialization with new manager...');
+    // Google Identity Services (GIS) マネージャーを使用
+    if (window.googleGISManager) {
+        console.log('Starting Google GIS initialization...');
         setTimeout(() => {
-            window.googleApiManager.init().catch(error => {
-                console.error('Google API initialization failed:', error);
+            window.googleGISManager.init().catch(error => {
+                console.error('Google GIS initialization failed:', error);
+                disableGoogleFeatures();
             });
         }, 1000); // 1秒遅延で開始
     } else {
-        console.log('Google API manager not available');
+        console.log('Google GIS manager not available');
         disableGoogleFeatures();
     }
 });
@@ -594,70 +595,39 @@ async function authenticateGoogle() {
     try {
         showLoadingOverlay('Google認証中...');
         
-        // 新しいマネージャーシステムを使用
-        if (!window.googleApiManager) {
-            throw new Error('Google APIマネージャーが利用できません。ページを再読み込みしてください。');
+        // Google Identity Services (GIS) マネージャーを使用
+        if (!window.googleGISManager) {
+            throw new Error('Google Identity Servicesが利用できません。ページを再読み込みしてください。');
         }
         
         // 初期化が完了していない場合は初期化を実行
-        if (!window.googleApiManager.initialized) {
-            console.log('Google API not initialized, starting initialization...');
-            await window.googleApiManager.init();
+        if (!window.googleGISManager.initialized) {
+            console.log('Google GIS not initialized, starting initialization...');
+            await window.googleGISManager.init();
         }
         
-        // Auth2インスタンスの取得
-        if (!window.gapi || !window.gapi.auth2) {
-            throw new Error('Google Auth2ライブラリが利用できません。');
-        }
+        console.log('Starting Google Identity Services authentication...');
+        showLoadingOverlay('Googleアカウント認証中...');
         
-        const authInstance = window.gapi.auth2.getAuthInstance();
-        if (!authInstance || typeof authInstance.isSignedIn !== 'function') {
-            throw new Error('Google Auth2インスタンスが正しく初期化されていません。');
-        }
+        // GISを使用してアクセストークンを取得
+        const accessToken = await window.googleGISManager.requestAccessToken();
         
-        console.log('Using Google Auth2 instance for authentication');
+        console.log('Access token received successfully');
         
-        // 認証状態をチェック
-        if (authInstance.isSignedIn.get()) {
-            // 既にサインイン済み
-            console.log('User already signed in');
-            isAuthenticated = true;
-            updateAuthStatus(true);
-            const saveBtn = document.getElementById('saveNowBtn');
-            if (saveBtn) saveBtn.disabled = false;
-            showSuccessMessage('Google認証が完了しました。');
-        } else {
-            // サインインを開始
-            console.log('Starting Google sign-in...');
-            showLoadingOverlay('Googleサインイン中...');
-            
-            try {
-                const user = await authInstance.signIn({
-                    scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
-                });
-                
-                console.log('Sign-in completed:', user);
-                
-                if (user && user.isSignedIn()) {
-                    isAuthenticated = true;
-                    updateAuthStatus(true);
-                    const saveBtn = document.getElementById('saveNowBtn');
-                    if (saveBtn) saveBtn.disabled = false;
-                    showSuccessMessage('Google認証が完了しました。');
-                } else {
-                    throw new Error('認証がキャンセルされました。');
-                }
-            } catch (signInError) {
-                if (signInError.error === 'popup_closed_by_user') {
-                    throw new Error('認証ポップアップが閉じられました。');
-                } else {
-                    throw new Error('サインインに失敗しました: ' + signInError.message);
-                }
-            }
-        }
+        // 認証状態を更新
+        isAuthenticated = true;
+        window.googleAccessToken = accessToken; // トークンを保存
+        updateAuthStatus(true);
+        
+        const saveBtn = document.getElementById('saveNowBtn');
+        if (saveBtn) saveBtn.disabled = false;
+        
+        showSuccessMessage('Google認証が完了しました。');
 
     } catch (error) {
         console.error('Google認証エラー:', error);
+        isAuthenticated = false;
+        updateAuthStatus(false);
         showErrorMessage('Google認証に失敗しました: ' + error.message);
     } finally {
         hideLoadingOverlay();
@@ -678,42 +648,12 @@ async function saveToSheets() {
     try {
         showLoadingOverlay('Google Sheetsに保存中...');
 
-        // Google Sheets APIクライアントが初期化されているかチェック
-        if (!window.gapi || !window.gapi.client) {
-            // gapi.clientを初期化
-            await new Promise((resolve, reject) => {
-                window.gapi.load('client', {
-                    callback: resolve,
-                    onerror: reject
-                });
-            });
-        }
-
-        // Google Sheets APIを初期化
-        if (!window.gapi.client.sheets) {
-            await window.gapi.client.init({
-                discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
-            });
-        }
-
-        // アクセストークンを取得
-        const authInstance = window.gapi.auth2.getAuthInstance();
-        if (!authInstance) {
-            throw new Error('Google認証インスタンスが見つかりません。先に認証を完了してください。');
+        // GISで取得したアクセストークンを使用
+        if (!window.googleAccessToken) {
+            throw new Error('有効なアクセストークンがありません。再度認証してください。');
         }
         
-        if (!authInstance.isSignedIn.get()) {
-            throw new Error('Googleにサインインしていません。先に認証を完了してください。');
-        }
-        
-        const currentUser = authInstance.currentUser.get();
-        const authResponse = currentUser.getAuthResponse();
-        
-        if (!authResponse || !authResponse.access_token) {
-            throw new Error('有効なアクセストークンが取得できません。再度認証してください。');
-        }
-        
-        const accessToken = authResponse.access_token;
+        const accessToken = window.googleAccessToken;
 
         // 新しいスプレッドシートを作成
         const createResponse = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
@@ -735,7 +675,8 @@ async function saveToSheets() {
         });
 
         if (!createResponse.ok) {
-            throw new Error(`スプレッドシート作成に失敗: ${createResponse.status}`);
+            const errorData = await createResponse.json().catch(() => ({}));
+            throw new Error(`スプレッドシート作成に失敗: ${createResponse.status} - ${errorData.error?.message || createResponse.statusText}`);
         }
 
         const createResult = await createResponse.json();
@@ -767,7 +708,8 @@ async function saveToSheets() {
         });
 
         if (!updateResponse.ok) {
-            throw new Error(`データ挿入に失敗: ${updateResponse.status}`);
+            const errorData = await updateResponse.json().catch(() => ({}));
+            throw new Error(`データ挿入に失敗: ${updateResponse.status} - ${errorData.error?.message || updateResponse.statusText}`);
         }
 
         showSuccessMessage(`データをGoogle Sheetsに保存しました。\nスプレッドシートID: ${spreadsheetId}`);
@@ -780,7 +722,16 @@ async function saveToSheets() {
 
     } catch (error) {
         console.error('Sheets保存エラー:', error);
-        showErrorMessage('Google Sheetsへの保存に失敗しました: ' + error.message);
+        
+        // トークンエラーの場合は再認証を促す
+        if (error.message.includes('401') || error.message.includes('unauthorized')) {
+            isAuthenticated = false;
+            window.googleAccessToken = null;
+            updateAuthStatus(false);
+            showErrorMessage('認証が期限切れです。再度Google認証を行ってください。');
+        } else {
+            showErrorMessage('Google Sheetsへの保存に失敗しました: ' + error.message);
+        }
     } finally {
         hideLoadingOverlay();
     }
