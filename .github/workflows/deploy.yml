@@ -18,7 +18,7 @@ jobs:
       with:
         server: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USERNAME }}
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        password: ${{ secrets.SFTP_PASSWORD }}
         local_path: './'
         remote_path: ${{ secrets.SSH_REMOTE_PATH }}
         sftpArgs: '-o ConnectTimeout=5'
