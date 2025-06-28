@@ -118,7 +118,41 @@
         <p id="loadingMessage">AI が回答を生成中...</p>
     </div>
 
-    <script src="https://apis.google.com/js/api.js"></script>
+    <script>
+        // Google APIの動的読み込み
+        window.googleApiLoaded = false;
+        window.googleApiError = false;
+        
+        function loadGoogleAPI() {
+            return new Promise((resolve, reject) => {
+                if (window.googleApiLoaded) {
+                    resolve();
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = 'https://apis.google.com/js/api.js';
+                script.onload = () => {
+                    window.googleApiLoaded = true;
+                    console.log('Google API script loaded successfully');
+                    resolve();
+                };
+                script.onerror = () => {
+                    window.googleApiError = true;
+                    console.error('Failed to load Google API script');
+                    reject(new Error('Google APIスクリプトの読み込みに失敗しました'));
+                };
+                document.head.appendChild(script);
+            });
+        }
+        
+        // ページ読み込み時にGoogle APIを読み込み
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGoogleAPI().catch(error => {
+                console.error('Google API loading error:', error);
+            });
+        });
+    </script>
     <script src="chat.js"></script>
 </body>
 </html>
