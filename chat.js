@@ -614,9 +614,13 @@ async function authenticateGoogle() {
         
         console.log('Access token received successfully');
         
+        // ユーザー情報を取得
+        const userInfo = await fetchGoogleUserInfo(accessToken);
+        
         // 認証状態を更新
         isAuthenticated = true;
         window.googleAccessToken = accessToken; // トークンを保存
+        window.googleUserInfo = userInfo; // ユーザー情報を保存
         updateAuthStatus(true);
         
         const saveBtn = document.getElementById('saveNowBtn');
@@ -654,69 +658,124 @@ async function saveToSheets() {
         }
         
         const accessToken = window.googleAccessToken;
+        const userInfo = window.googleUserInfo || { email: 'Unknown', name: 'Unknown User' };
+        const llmProvider = sessionStorage.getItem('llmProvider') || 'Unknown';
 
-        // 新しいスプレッドシートを作成
-        const createResponse = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                properties: {
-                    title: `PersonaAgent対話履歴_${new Date().toLocaleDateString('ja-JP')}`
-                },
-                sheets: [{
-                    properties: {
-                        title: 'チャット履歴'
-                    }
-                }]
-            })
-        });
-
-        if (!createResponse.ok) {
-            const errorData = await createResponse.json().catch(() => ({}));
-            throw new Error(`スプレッドシート作成に失敗: ${createResponse.status} - ${errorData.error?.message || createResponse.statusText}`);
+        // 設定からスプレッドシートIDを取得
+        const configResponse = await fetch('/persona/api.php?action=get_google_config');
+        if (!configResponse.ok) {
+            throw new Error('スプレッドシート設定の取得に失敗しました。');
         }
+        
+        const configData = await configResponse.json();
+        let spreadsheetId = configData.spreadsheet_id;
+        
+        // スプレッドシートIDが設定されていない場合は新規作成
+        if (!spreadsheetId) {
+            console.log('スプレッドシートIDが設定されていないため、新規作成します...');
+            
+            const createResponse = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    properties: {
+                        title: 'PersonaAgent対話履歴'
+                    },
+                    sheets: [{
+                        properties: {
+                            title: 'チャット履歴'
+                        }
+                    }]
+                })
+            });
 
-        const createResult = await createResponse.json();
-        const spreadsheetId = createResult.spreadsheetId;
+            if (!createResponse.ok) {
+                const errorData = await createResponse.json().catch(() => ({}));
+                throw new Error(`スプレッドシート作成に失敗: ${createResponse.status} - ${errorData.error?.message || createResponse.statusText}`);
+            }
+
+            const createResult = await createResponse.json();
+            spreadsheetId = createResult.spreadsheetId;
+            
+            // スプレッドシートIDを保存
+            await fetch('/persona/api.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'save_spreadsheet_id',
+                    spreadsheet_id: spreadsheetId
+                })
+            });
+            
+            // ヘッダーを追加
+            const headers = ['タイムスタンプ', 'Googleアカウント', 'LLM名', 'ペルソナ名', '質問', '回答'];
+            await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A1:F1?valueInputOption=RAW`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    values: [headers]
+                })
+            });
+            
+            console.log('新しいスプレッドシートを作成しました:', spreadsheetId);
+        }
         
-        // データを準備
-        const headers = ['タイムスタンプ', 'ペルソナ名', '質問', '回答'];
-        const rows = [headers];
-        
-        chatHistory.forEach(item => {
-            rows.push([
-                new Date(item.timestamp).toLocaleString('ja-JP'),
-                item.personaName || '',
-                item.question || '',
-                item.answer || ''
-            ]);
+        // 現在のデータ範囲を取得して最終行を特定
+        const rangeResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A:F`, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
         });
+        
+        let nextRow = 1; // デフォルトは1行目（ヘッダー用）
+        if (rangeResponse.ok) {
+            const rangeData = await rangeResponse.json();
+            if (rangeData.values && rangeData.values.length > 0) {
+                nextRow = rangeData.values.length + 1; // 最終行の次の行
+            }
+        }
+        
+        // 新しいデータを準備（最新の対話のみ）
+        const latestChat = chatHistory[chatHistory.length - 1];
+        const newRow = [
+            new Date(latestChat.timestamp).toLocaleString('ja-JP'),
+            userInfo.email,
+            llmProvider.toUpperCase(),
+            latestChat.personaName || currentPersona?.name || '',
+            latestChat.question || '',
+            latestChat.answer || ''
+        ];
 
-        // データを挿入
-        const updateResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A1:D${rows.length}?valueInputOption=RAW`, {
+        // データを追加
+        const appendResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A${nextRow}:F${nextRow}?valueInputOption=RAW`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                values: rows
+                values: [newRow]
             })
         });
 
-        if (!updateResponse.ok) {
-            const errorData = await updateResponse.json().catch(() => ({}));
-            throw new Error(`データ挿入に失敗: ${updateResponse.status} - ${errorData.error?.message || updateResponse.statusText}`);
+        if (!appendResponse.ok) {
+            const errorData = await appendResponse.json().catch(() => ({}));
+            throw new Error(`データ追加に失敗: ${appendResponse.status} - ${errorData.error?.message || appendResponse.statusText}`);
         }
 
-        showSuccessMessage(`データをGoogle Sheetsに保存しました。\nスプレッドシートID: ${spreadsheetId}`);
+        showSuccessMessage('対話データをGoogle Sheetsに保存しました。');
         closeSheetsModal();
         
         // スプレッドシートを開くオプション
-        if (confirm('作成されたスプレッドシートを開きますか？')) {
+        if (confirm('スプレッドシートを開いて確認しますか？')) {
             window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`, '_blank');
         }
 
@@ -737,11 +796,43 @@ async function saveToSheets() {
     }
 }
 
+// Googleユーザー情報を取得
+async function fetchGoogleUserInfo(accessToken) {
+    try {
+        const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch user info: ${response.status}`);
+        }
+        
+        const userInfo = await response.json();
+        console.log('Google user info retrieved:', userInfo);
+        
+        return {
+            email: userInfo.email || '',
+            name: userInfo.name || '',
+            id: userInfo.id || ''
+        };
+    } catch (error) {
+        console.warn('Failed to fetch Google user info:', error);
+        return {
+            email: 'Unknown',
+            name: 'Unknown User',
+            id: 'unknown'
+        };
+    }
+}
+
 function updateAuthStatus(authenticated) {
     const authStatus = document.getElementById('authStatus');
     if (authStatus) {
         if (authenticated) {
-            authStatus.textContent = '認証済み';
+            const userEmail = window.googleUserInfo ? window.googleUserInfo.email : '';
+            authStatus.textContent = userEmail ? `認証済み (${userEmail})` : '認証済み';
             authStatus.classList.add('authenticated');
         } else {
             authStatus.textContent = '未認証';

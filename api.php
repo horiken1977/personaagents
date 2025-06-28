@@ -25,7 +25,8 @@ class LLMAPIHub {
                 if ($action === 'get_google_config') {
                     $config = GOOGLE_API_CONFIG;
                     sendJsonResponse([
-                        'client_id' => $config['client_id'] ?? ''
+                        'client_id' => $config['client_id'] ?? '',
+                        'spreadsheet_id' => getSpreadsheetId()
                     ]);
                     return;
                 } elseif ($action === 'get_api_keys') {
@@ -57,6 +58,20 @@ class LLMAPIHub {
             
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new Exception('Invalid JSON in request body', 400);
+            }
+            
+            // スプレッドシートID保存の特別処理
+            if (isset($input['action']) && $input['action'] === 'save_spreadsheet_id') {
+                if (!isset($input['spreadsheet_id'])) {
+                    throw new Exception('Spreadsheet ID is required', 400);
+                }
+                
+                $success = saveSpreadsheetId($input['spreadsheet_id']);
+                sendJsonResponse([
+                    'success' => $success,
+                    'message' => $success ? 'Spreadsheet ID saved' : 'Failed to save spreadsheet ID'
+                ]);
+                return;
             }
             
             // 入力値の検証

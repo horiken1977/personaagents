@@ -16,7 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'anthropic' => $_POST['anthropic_key'] ?? '',
             'google' => $_POST['google_key'] ?? '',
             'google_client_id' => $_POST['google_client_id'] ?? '',
-            'google_client_secret' => $_POST['google_client_secret'] ?? ''
+            'google_client_secret' => $_POST['google_client_secret'] ?? '',
+            'google_spreadsheet_id' => $_POST['google_spreadsheet_id'] ?? ''
         ];
         
         // JSONファイルに保存
@@ -529,6 +530,18 @@ function testGoogleOAuth($clientId, $clientSecret) {
                     <p class="help-text">
                         <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> で取得<br>
                         リダイレクトURI: <code>https://mokumoku.sakura.ne.jp/persona/google_auth.php</code>
+                    </p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="google_spreadsheet_id">Google Spreadsheet ID（対話履歴保存用）</label>
+                    <input type="text" id="google_spreadsheet_id" name="google_spreadsheet_id"
+                           value="<?php echo htmlspecialchars($savedKeys['google_spreadsheet_id'] ?? ''); ?>"
+                           placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms">
+                    <p class="help-text">
+                        空白の場合、初回保存時に新しいスプレッドシートを自動作成します。<br>
+                        手動で作成する場合は、GoogleスプレッドシートのURLから ID部分をコピーしてください。<br>
+                        例: https://docs.google.com/spreadsheets/d/<strong>1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms</strong>/edit
                     </p>
                 </div>
             </div>

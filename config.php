@@ -153,6 +153,42 @@ function getConfig($key, $default = null) {
 }
 
 /**
+ * Google SpreadsheetIDを取得
+ */
+function getSpreadsheetId() {
+    $apiKeysFile = __DIR__ . '/api_keys.json';
+    if (file_exists($apiKeysFile)) {
+        $content = file_get_contents($apiKeysFile);
+        if ($content) {
+            $keys = json_decode($content, true);
+            if ($keys && is_array($keys) && isset($keys['google_spreadsheet_id'])) {
+                return trim($keys['google_spreadsheet_id']) ?: null;
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ * Google SpreadsheetIDを保存
+ */
+function saveSpreadsheetId($spreadsheetId) {
+    $apiKeysFile = __DIR__ . '/api_keys.json';
+    $keys = [];
+    
+    if (file_exists($apiKeysFile)) {
+        $content = file_get_contents($apiKeysFile);
+        if ($content) {
+            $keys = json_decode($content, true) ?: [];
+        }
+    }
+    
+    $keys['google_spreadsheet_id'] = $spreadsheetId;
+    
+    return file_put_contents($apiKeysFile, json_encode($keys, JSON_PRETTY_PRINT)) !== false;
+}
+
+/**
  * 環境変数または設定ファイルからAPIキーを取得
  */
 function getApiKey($provider) {
