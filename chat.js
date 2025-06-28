@@ -12,14 +12,39 @@ document.addEventListener('DOMContentLoaded', function() {
     loadChatHistory();
     checkApiKeysAndHideInputs();
     
-    // Google APIの初期化は少し遅らせる
-    setTimeout(() => {
-        try {
-            initializeGoogleAPI();
-        } catch (error) {
-            console.log('Google API initialization failed:', error);
+    // Google APIの初期化は十分に遅らせる（エラーが発生してもチャット機能には影響しない）
+    // 複数回リトライして確実に初期化を試みる
+    let googleApiRetryCount = 0;
+    const maxRetries = 5;
+    
+    function tryInitializeGoogleAPI() {
+        googleApiRetryCount++;
+        if (googleApiRetryCount <= maxRetries) {
+            setTimeout(() => {
+                try {
+                    const success = initializeGoogleAPIIfAvailable();
+                    if (!success && googleApiRetryCount < maxRetries) {
+                        console.log(`Google API initialization attempt ${googleApiRetryCount} failed - retrying...`);
+                        tryInitializeGoogleAPI();
+                    } else if (success) {
+                        console.log(`Google API initialized successfully on attempt ${googleApiRetryCount}`);
+                    } else {
+                        console.log('Google API initialization failed after all retries - continuing without Google features');
+                        disableGoogleFeatures();
+                    }
+                } catch (error) {
+                    console.log(`Google API initialization attempt ${googleApiRetryCount} failed:`, error);
+                    if (googleApiRetryCount < maxRetries) {
+                        tryInitializeGoogleAPI();
+                    } else {
+                        disableGoogleFeatures();
+                    }
+                }
+            }, 1000 * googleApiRetryCount); // 1秒、2秒、3秒...と間隔を開ける
         }
-    }, 1000);
+    }
+    
+    tryInitializeGoogleAPI();
 });
 
 // チャット初期化
@@ -475,20 +500,34 @@ function exportChatHistory() {
     showSuccessMessage('履歴をエクスポートしました。');
 }
 
-// Google API初期化
+// Google API初期化（安全版）
+function initializeGoogleAPIIfAvailable() {
+    try {
+        // Google APIスクリプトが読み込まれているかチェック
+        if (typeof window.gapi === 'undefined' || !window.gapi) {
+            console.log('Google API script not loaded - Sheets export will be unavailable');
+            disableGoogleFeatures();
+            return false;
+        }
+        
+        // gapiオブジェクトが完全に初期化されているかチェック
+        if (!window.gapi.load) {
+            console.log('Google API not fully loaded yet');
+            return false; // リトライのためにfalseを返す
+        }
+        
+        initializeGoogleAPI();
+        return true;
+        
+    } catch (error) {
+        console.log('Google API initialization failed:', error);
+        disableGoogleFeatures();
+        return false;
+    }
+}
+
+// Google API初期化（実際の処理）
 function initializeGoogleAPI() {
-    // Google APIが読み込まれているかチェック
-    if (typeof window.gapi === 'undefined' || !window.gapi) {
-        console.log('Google API is not loaded');
-        return;
-    }
-    
-    // gapiオブジェクトが完全に初期化されているかチェック
-    if (!window.gapi.load) {
-        console.log('Google API load function not available');
-        return;
-    }
-    
     try {
         // クライアントIDが設定されているか確認
         fetch('/persona/api.php?action=get_google_config')
@@ -507,20 +546,43 @@ function initializeGoogleAPI() {
                                 client_id: data.client_id
                             });
                             console.log('Google API initialized successfully');
+                            enableGoogleFeatures();
                         } catch (error) {
                             console.log('Google auth2 init failed:', error);
+                            disableGoogleFeatures();
                         }
                     });
                 } else {
-                    console.log('Google Client ID not configured');
+                    console.log('Google Client ID not configured - Sheets export disabled');
+                    disableGoogleFeatures();
                 }
             })
             .catch(error => {
                 console.log('Google API configuration error:', error);
+                disableGoogleFeatures();
             });
     } catch (error) {
         console.log('Google API initialization error:', error);
+        disableGoogleFeatures();
     }
+}
+
+// Google機能を無効化
+function disableGoogleFeatures() {
+    const sheetsButtons = document.querySelectorAll('[onclick*="showSheetsModal"], [onclick*="exportToSheets"]');
+    sheetsButtons.forEach(button => {
+        button.style.display = 'none';
+    });
+    console.log('Google Sheets features disabled');
+}
+
+// Google機能を有効化
+function enableGoogleFeatures() {
+    const sheetsButtons = document.querySelectorAll('[onclick*="showSheetsModal"], [onclick*="exportToSheets"]');
+    sheetsButtons.forEach(button => {
+        button.style.display = 'inline-block';
+    });
+    console.log('Google Sheets features enabled');
 }
 
 // APIキーの状態をチェックして入力フィールドを非表示にする
