@@ -28,6 +28,15 @@ class LLMAPIHub {
                         'client_id' => $config['client_id'] ?? ''
                     ]);
                     return;
+                } elseif ($action === 'get_api_keys') {
+                    // APIキーの存在確認（キー自体は返さない）
+                    $hasKeys = [
+                        'openai' => !empty(getApiKey('openai')),
+                        'claude' => !empty(getApiKey('claude')),
+                        'gemini' => !empty(getApiKey('gemini'))
+                    ];
+                    sendJsonResponse($hasKeys);
+                    return;
                 }
             }
             
@@ -98,11 +107,6 @@ class LLMAPIHub {
                 'type' => 'string',
                 'max_length' => 10000
             ],
-            'apiKey' => [
-                'required' => true,
-                'type' => 'string',
-                'max_length' => 200
-            ],
             'personaId' => [
                 'required' => false,
                 'type' => 'integer'
@@ -127,6 +131,15 @@ class LLMAPIHub {
     private function callLLMAPI($input) {
         $provider = $input['provider'];
         $config = $this->providers[$provider];
+        
+        // サーバー側でAPIキーを取得
+        $apiKey = getApiKey($provider);
+        if (!$apiKey) {
+            throw new Exception("APIキーが設定されていません: {$provider}", 400);
+        }
+        
+        // inputにAPIキーを追加
+        $input['apiKey'] = $apiKey;
         
         switch ($provider) {
             case 'openai':

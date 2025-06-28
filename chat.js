@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     loadChatHistory();
     initializeGoogleAPI();
+    checkApiKeysAndHideInputs();
 });
 
 // チャット初期化
@@ -258,12 +259,6 @@ async function sendMessage() {
 // AIレスポンス取得
 async function getAIResponse(userMessage) {
     const llmProvider = sessionStorage.getItem('llmProvider') || 'openai';
-    const apiKey = sessionStorage.getItem('apiKey');
-
-    if (!apiKey) {
-        throw new Error('APIキーが設定されていません。');
-    }
-
     const prompt = createPersonaPrompt(userMessage);
 
     try {
@@ -274,7 +269,6 @@ async function getAIResponse(userMessage) {
             },
             body: JSON.stringify({
                 provider: llmProvider,
-                apiKey: apiKey,
                 prompt: prompt,
                 personaId: currentPersona.id
             })
@@ -476,14 +470,19 @@ function exportChatHistory() {
 // Google API初期化
 function initializeGoogleAPI() {
     // Google APIが読み込まれていない場合は初期化しない
-    if (typeof gapi === 'undefined' || !gapi) {
-        console.log('Google API is not loaded');
+    if (typeof gapi === 'undefined' || !gapi || !gapi.load) {
+        console.log('Google API is not loaded or not available');
         return;
     }
     
     // クライアントIDが設定されているか確認
     fetch('/persona/api.php?action=get_google_config')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch Google config');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.client_id && data.client_id !== '') {
                 gapi.load('auth2', function() {
@@ -491,11 +490,54 @@ function initializeGoogleAPI() {
                         client_id: data.client_id
                     });
                 });
+            } else {
+                console.log('Google Client ID not configured');
             }
         })
         .catch(error => {
             console.log('Google API configuration not available:', error);
         });
+}
+
+// APIキーの状態をチェックして入力フィールドを非表示にする
+async function checkApiKeysAndHideInputs() {
+    try {
+        const response = await fetch('/persona/api.php?action=get_api_keys');
+        if (response.ok) {
+            const hasKeys = await response.json();
+            
+            // いずれかのAPIキーが設定されている場合は入力フィールドを非表示
+            if (hasKeys.openai || hasKeys.claude || hasKeys.gemini) {
+                const apiKeySection = document.querySelector('.api-key-section');
+                if (apiKeySection) {
+                    apiKeySection.style.display = 'none';
+                }
+                
+                // 設定済みメッセージを表示
+                const settingsMessage = document.createElement('div');
+                settingsMessage.className = 'settings-message';
+                settingsMessage.innerHTML = `
+                    <p>✅ APIキーが設定済みです</p>
+                    <a href="setup.php" class="btn btn-secondary btn-sm">設定を変更</a>
+                `;
+                settingsMessage.style.cssText = `
+                    background: #d4edda;
+                    color: #155724;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin-bottom: 20px;
+                    text-align: center;
+                `;
+                
+                const chatContainer = document.querySelector('.chat-container');
+                if (chatContainer) {
+                    chatContainer.insertBefore(settingsMessage, chatContainer.firstChild);
+                }
+            }
+        }
+    } catch (error) {
+        console.log('Failed to check API keys:', error);
+    }
 }
 
 // Google Sheets関連
