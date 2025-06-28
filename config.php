@@ -4,6 +4,9 @@
  * 環境変数と設定定数を管理
  */
 
+// カスタムエラーハンドラーの読み込み
+require_once __DIR__ . '/error_handler.php';
+
 // .envファイルの読み込み（存在する場合）
 if (file_exists(__DIR__ . '/.env')) {
     $envLines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -17,6 +20,12 @@ if (file_exists(__DIR__ . '/.env')) {
             $_ENV[$key] = $value;
         }
     }
+}
+
+// logsディレクトリの作成（存在しない場合）
+$logsDir = __DIR__ . '/logs';
+if (!is_dir($logsDir)) {
+    @mkdir($logsDir, 0755, true);
 }
 
 // エラー報告設定（本番環境では無効にする）
@@ -122,6 +131,26 @@ function getConfig($key, $default = null) {
  * 環境変数または設定ファイルからAPIキーを取得
  */
 function getApiKey($provider) {
+    // まずJSONファイルから読み込みを試みる
+    $apiKeysFile = __DIR__ . '/api_keys.json';
+    if (file_exists($apiKeysFile)) {
+        $keys = json_decode(file_get_contents($apiKeysFile), true);
+        if ($keys) {
+            switch ($provider) {
+                case 'openai':
+                    if (!empty($keys['openai'])) return $keys['openai'];
+                    break;
+                case 'claude':
+                    if (!empty($keys['anthropic'])) return $keys['anthropic'];
+                    break;
+                case 'gemini':
+                    if (!empty($keys['google'])) return $keys['google'];
+                    break;
+            }
+        }
+    }
+    
+    // JSONファイルになければ環境変数から取得
     switch ($provider) {
         case 'openai':
             return getenv('OPENAI_API_KEY');

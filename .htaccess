@@ -15,6 +15,12 @@ Options -Indexes
     Deny from all
 </Files>
 
+# api_keys.jsonファイルの保護
+<Files "api_keys.json">
+    Order allow,deny
+    Deny from all
+</Files>
+
 # エラーページ
 ErrorDocument 404 /persona/error.php?code=404
 ErrorDocument 500 /persona/error.php?code=500
