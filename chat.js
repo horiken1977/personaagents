@@ -547,23 +547,36 @@ function initializeGoogleAPI() {
                 if (data && data.client_id && data.client_id !== '' && data.client_id.trim() !== '') {
                     console.log('Valid Google Client ID found, initializing...');
                     
-                    // gapi.load で auth2 と client を同時に読み込み
-                    window.gapi.load('auth2:client', function() {
-                        try {
-                            console.log('Google API libraries loaded, initializing auth2...');
-                            
-                            window.gapi.auth2.init({
-                                client_id: data.client_id,
-                                scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
-                            }).then(function() {
-                                console.log('Google API initialized successfully');
-                                enableGoogleFeatures();
-                            }).catch(function(error) {
+                    // 既に初期化されているかチェック
+                    if (window.gapi.auth2 && window.gapi.auth2.getAuthInstance()) {
+                        console.log('Google Auth2 already initialized, enabling features');
+                        enableGoogleFeatures();
+                        return;
+                    }
+                    
+                    // 段階的に初期化 - まずauth2のみ
+                    window.gapi.load('auth2', {
+                        callback: function() {
+                            try {
+                                console.log('Google Auth2 library loaded, initializing...');
+                                
+                                window.gapi.auth2.init({
+                                    client_id: data.client_id,
+                                    scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
+                                }).then(function() {
+                                    console.log('Google Auth2 initialized successfully');
+                                    enableGoogleFeatures();
+                                }).catch(function(error) {
+                                    console.log('Google auth2 init failed:', error);
+                                    disableGoogleFeatures();
+                                });
+                            } catch (error) {
                                 console.log('Google auth2 init failed:', error);
                                 disableGoogleFeatures();
-                            });
-                        } catch (error) {
-                            console.log('Google auth2 init failed:', error);
+                            }
+                        },
+                        onerror: function() {
+                            console.log('Failed to load Google Auth2 library');
                             disableGoogleFeatures();
                         }
                     });
@@ -667,85 +680,21 @@ async function authenticateGoogle() {
             throw new Error('Google APIが読み込まれていません。ページを再読み込みしてください。');
         }
         
-        // まずGoogle設定を確認
-        const response = await fetch('/persona/api.php?action=get_google_config');
-        if (!response.ok) {
-            throw new Error('Google設定の取得に失敗しました。');
-        }
-        
-        const configData = await response.json();
-        console.log('Config data received:', configData);
-        
-        if (!configData || !configData.client_id || configData.client_id.trim() === '') {
-            throw new Error('Google Client IDが設定されていません。設定画面でGoogle OAuth設定を完了してください。');
-        }
-        
-        console.log('Google Client ID found:', configData.client_id.substring(0, 20) + '...');
-        
-        // Google API初期化を試みる
+        // 既に初期化されたAuth2インスタンスがあるかチェック
         let authInstance = null;
-        let initAttempts = 0;
-        const maxAttempts = 3;
         
-        while (!authInstance && initAttempts < maxAttempts) {
-            try {
-                initAttempts++;
-                console.log(`Google Auth2 initialization attempt ${initAttempts}/${maxAttempts}`);
-                
-                // 既に初期化されているかチェック
-                if (window.gapi.auth2) {
-                    authInstance = window.gapi.auth2.getAuthInstance();
-                    if (authInstance && typeof authInstance.isSignedIn === 'function') {
-                        console.log('Google Auth2 already initialized');
-                        break;
-                    }
-                }
-                
-                // 新規初期化または再初期化
-                console.log('Initializing Google Auth2...');
-                
-                // タイムアウト付きの初期化
-                authInstance = await Promise.race([
-                    new Promise((resolve, reject) => {
-                        window.gapi.load('auth2', {
-                            callback: async () => {
-                                try {
-                                    const auth = await window.gapi.auth2.init({
-                                        client_id: configData.client_id,
-                                        scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
-                                    });
-                                    console.log('Google Auth2 initialized successfully');
-                                    resolve(auth);
-                                } catch (error) {
-                                    console.error('Google Auth2 init error:', error);
-                                    reject(error);
-                                }
-                            },
-                            onerror: (error) => {
-                                console.error('Google API load error:', error);
-                                reject(new Error('Google APIの読み込みに失敗しました'));
-                            }
-                        });
-                    }),
-                    new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('初期化がタイムアウトしました')), 10000)
-                    )
-                ]);
-                
-                break;
-                
-            } catch (initError) {
-                console.error(`Initialization attempt ${initAttempts} failed:`, initError);
-                if (initAttempts >= maxAttempts) {
-                    throw new Error('Google API初期化に失敗しました: ' + initError.message);
-                }
-                // 少し待ってから再試行
-                await new Promise(resolve => setTimeout(resolve, 1000));
+        if (window.gapi.auth2) {
+            authInstance = window.gapi.auth2.getAuthInstance();
+            if (authInstance && typeof authInstance.isSignedIn === 'function') {
+                console.log('Using existing Google Auth2 instance');
+            } else {
+                authInstance = null;
             }
         }
         
-        if (!authInstance || typeof authInstance.isSignedIn !== 'function') {
-            throw new Error('Google認証インスタンスの初期化に失敗しました');
+        // 初期化されていない場合はエラー
+        if (!authInstance) {
+            throw new Error('Google APIが初期化されていません。ページを再読み込みしてGoogle Sheetsボタンが表示されることを確認してください。');
         }
         
         // 認証状態をチェック
@@ -818,8 +767,22 @@ async function saveToSheets() {
 
         // アクセストークンを取得
         const authInstance = window.gapi.auth2.getAuthInstance();
+        if (!authInstance) {
+            throw new Error('Google認証インスタンスが見つかりません。先に認証を完了してください。');
+        }
+        
+        if (!authInstance.isSignedIn.get()) {
+            throw new Error('Googleにサインインしていません。先に認証を完了してください。');
+        }
+        
         const currentUser = authInstance.currentUser.get();
-        const accessToken = currentUser.getAuthResponse().access_token;
+        const authResponse = currentUser.getAuthResponse();
+        
+        if (!authResponse || !authResponse.access_token) {
+            throw new Error('有効なアクセストークンが取得できません。再度認証してください。');
+        }
+        
+        const accessToken = authResponse.access_token;
 
         // 新しいスプレッドシートを作成
         const createResponse = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
