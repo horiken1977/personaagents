@@ -555,6 +555,15 @@ async function initializeGoogleAPI() {
         
         console.log('Valid Google Client ID found:', data.client_id.substring(0, 20) + '...');
         
+        // Client IDの詳細検証
+        const clientIdValidation = validateGoogleClientId(data.client_id);
+        if (!clientIdValidation.valid) {
+            console.error('Google Client ID validation failed:', clientIdValidation.error);
+            showErrorMessage('Google Client ID設定エラー: ' + clientIdValidation.error);
+            disableGoogleFeatures();
+            return;
+        }
+        
         // 既に初期化されているかチェック
         if (window.gapi.auth2) {
             const existingAuth = window.gapi.auth2.getAuthInstance();
@@ -565,50 +574,139 @@ async function initializeGoogleAPI() {
             }
         }
         
-        // Auth2ライブラリの読み込みと初期化
+        // Auth2ライブラリの読み込みと初期化（エラー回復付き）
         await new Promise((resolve, reject) => {
             console.log('Loading Google Auth2 library...');
             
             // タイムアウト設定
             const timeoutId = setTimeout(() => {
-                reject(new Error('Google Auth2 library loading timed out'));
-            }, 15000);
-            
-            window.gapi.load('auth2', {
-                callback: async () => {
-                    try {
-                        clearTimeout(timeoutId);
-                        console.log('Google Auth2 library loaded, initializing...');
-                        
-                        const authInstance = await window.gapi.auth2.init({
-                            client_id: data.client_id,
-                            scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
-                        });
-                        
-                        console.log('Google Auth2 initialized successfully');
+                console.error('Google Auth2 library loading timed out');
+                // タイムアウト時の状態回復を試みる
+                tryRecoverGoogleApiState().then(recovered => {
+                    if (recovered) {
+                        console.log('Google API state recovered from timeout');
                         enableGoogleFeatures();
                         resolve();
-                        
-                    } catch (error) {
-                        clearTimeout(timeoutId);
-                        console.error('Google auth2 init failed:', error);
-                        disableGoogleFeatures();
-                        reject(error);
+                    } else {
+                        reject(new Error('Google Auth2 library loading timed out and recovery failed'));
                     }
-                },
-                onerror: () => {
-                    clearTimeout(timeoutId);
-                    console.error('Failed to load Google Auth2 library');
-                    disableGoogleFeatures();
-                    reject(new Error('Failed to load Google Auth2 library'));
-                }
-            });
+                }).catch(err => {
+                    reject(new Error(`Google Auth2 library loading timed out: ${err.message}`));
+                });
+            }, 15000);
+            
+            try {
+                window.gapi.load('auth2', {
+                    callback: async () => {
+                        try {
+                            clearTimeout(timeoutId);
+                            console.log('Google Auth2 library loaded, initializing...');
+                            
+                            const authInstance = await window.gapi.auth2.init({
+                                client_id: data.client_id,
+                                scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
+                            });
+                            
+                            console.log('Google Auth2 initialized successfully');
+                            enableGoogleFeatures();
+                            resolve();
+                            
+                        } catch (error) {
+                            clearTimeout(timeoutId);
+                            console.error('Google auth2 init failed:', error);
+                            
+                            // 初期化失敗時の詳細エラー情報
+                            let detailedError = `Google Auth2初期化失敗: ${error.message}`;
+                            if (error.error) {
+                                detailedError += ` (${error.error})`;
+                            }
+                            if (error.details) {
+                                detailedError += ` - 詳細: ${JSON.stringify(error.details)}`;
+                            }
+                            
+                            console.error('詳細エラー情報:', detailedError);
+                            showErrorMessage(detailedError);
+                            disableGoogleFeatures();
+                            reject(new Error(detailedError));
+                        }
+                    },
+                    onerror: (error) => {
+                        clearTimeout(timeoutId);
+                        console.error('Failed to load Google Auth2 library:', error);
+                        const errorMsg = `Google Auth2ライブラリの読み込みに失敗しました: ${error ? JSON.stringify(error) : '不明なエラー'}`;
+                        showErrorMessage(errorMsg);
+                        disableGoogleFeatures();
+                        reject(new Error(errorMsg));
+                    }
+                });
+            } catch (loadError) {
+                clearTimeout(timeoutId);
+                const errorMsg = `Google APIライブラリの読み込み中にエラーが発生しました: ${loadError.message}`;
+                console.error(errorMsg);
+                showErrorMessage(errorMsg);
+                disableGoogleFeatures();
+                reject(new Error(errorMsg));
+            }
         });
         
     } catch (error) {
         console.log('Google API initialization error:', error);
         disableGoogleFeatures();
     }
+}
+
+// Google API状態回復の試行
+async function tryRecoverGoogleApiState() {
+    try {
+        console.log('Attempting to recover Google API state...');
+        
+        // 少し待ってから状態をチェック
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        if (window.gapi && window.gapi.auth2) {
+            const authInstance = window.gapi.auth2.getAuthInstance();
+            if (authInstance && typeof authInstance.isSignedIn === 'function') {
+                console.log('Google API state recovered successfully');
+                return true;
+            }
+        }
+        
+        console.log('Google API state recovery failed');
+        return false;
+        
+    } catch (error) {
+        console.error('Error during Google API state recovery:', error);
+        return false;
+    }
+}
+
+// Google Client ID検証
+function validateGoogleClientId(clientId) {
+    if (!clientId || typeof clientId !== 'string') {
+        return { valid: false, error: 'Client IDが空または無効です' };
+    }
+    
+    // 基本的な形式チェック
+    const clientIdPattern = /^[0-9]+-[a-zA-Z0-9_]+\.apps\.googleusercontent\.com$/;
+    if (!clientIdPattern.test(clientId)) {
+        return { 
+            valid: false, 
+            error: 'Client IDの形式が正しくありません。正しい形式: xxxxx.apps.googleusercontent.com' 
+        };
+    }
+    
+    // 現在のドメインチェック
+    const currentDomain = window.location.hostname;
+    console.log('Current domain:', currentDomain);
+    
+    // リダイレクトURIの妥当性チェック（開発用の警告）
+    if (currentDomain === 'localhost' || currentDomain === '127.0.0.1') {
+        console.warn('Warning: Running on localhost. Make sure your Google OAuth Client ID includes localhost in authorized domains.');
+    } else if (!currentDomain.includes('sakura.ne.jp')) {
+        console.warn('Warning: Current domain may not be authorized in Google OAuth settings.');
+    }
+    
+    return { valid: true, error: null };
 }
 
 // Google機能を無効化
@@ -627,6 +725,95 @@ function enableGoogleFeatures() {
         saveToSheetsBtn.style.display = 'inline-block';
     }
     console.log('Google Sheets features enabled');
+}
+
+// Google API状態の詳細診断
+async function getGoogleApiDiagnostics() {
+    const diagnostics = {
+        canAuthenticate: false,
+        errorMessage: '',
+        authInstance: null,
+        details: {}
+    };
+    
+    try {
+        // 1. Google APIスクリプトの読み込み状態
+        diagnostics.details.scriptLoaded = window.googleApiLoaded || false;
+        diagnostics.details.scriptError = window.googleApiError || false;
+        diagnostics.details.gapiAvailable = typeof window.gapi !== 'undefined';
+        
+        if (window.googleApiError) {
+            diagnostics.errorMessage = 'Google APIスクリプトの読み込みに失敗しました。ネットワーク接続を確認してページを再読み込みしてください。';
+            return diagnostics;
+        }
+        
+        if (!window.googleApiLoaded || !window.gapi) {
+            diagnostics.errorMessage = 'Google APIが読み込まれていません。ページを再読み込みしてください。';
+            return diagnostics;
+        }
+        
+        // 2. Auth2ライブラリの状態
+        diagnostics.details.auth2Available = typeof window.gapi.auth2 !== 'undefined';
+        
+        if (!window.gapi.auth2) {
+            diagnostics.errorMessage = 'Google Auth2ライブラリが読み込まれていません。初期化が完了していない可能性があります。';
+            return diagnostics;
+        }
+        
+        // 3. Auth2インスタンスの状態
+        const authInstance = window.gapi.auth2.getAuthInstance();
+        diagnostics.details.authInstanceExists = authInstance !== null;
+        diagnostics.details.authInstanceValid = authInstance && typeof authInstance.isSignedIn === 'function';
+        
+        if (!authInstance) {
+            diagnostics.errorMessage = 'Google Auth2インスタンスが見つかりません。初期化エラーが発生している可能性があります。';
+            return diagnostics;
+        }
+        
+        if (typeof authInstance.isSignedIn !== 'function') {
+            diagnostics.errorMessage = 'Google Auth2インスタンスが正しく初期化されていません。';
+            return diagnostics;
+        }
+        
+        // 4. 設定の確認
+        const response = await fetch('/persona/api.php?action=get_google_config');
+        if (response.ok) {
+            const configData = await response.json();
+            diagnostics.details.clientIdConfigured = !!(configData && configData.client_id);
+            diagnostics.details.clientId = configData?.client_id ? configData.client_id.substring(0, 20) + '...' : 'なし';
+            
+            if (!configData || !configData.client_id) {
+                diagnostics.errorMessage = 'Google Client IDが設定されていません。設定画面でGoogle OAuth設定を完了してください。';
+                return diagnostics;
+            }
+            
+            // Client ID検証
+            const validation = validateGoogleClientId(configData.client_id);
+            if (!validation.valid) {
+                diagnostics.errorMessage = 'Google Client ID設定エラー: ' + validation.error;
+                return diagnostics;
+            }
+        } else {
+            diagnostics.errorMessage = 'Google設定の取得に失敗しました。サーバーエラーの可能性があります。';
+            return diagnostics;
+        }
+        
+        // 5. 認証状態の確認
+        diagnostics.details.isSignedIn = authInstance.isSignedIn.get();
+        diagnostics.details.currentUser = authInstance.isSignedIn.get() ? 'サインイン済み' : '未サインイン';
+        
+        // 全てのチェックが通った場合
+        diagnostics.canAuthenticate = true;
+        diagnostics.authInstance = authInstance;
+        diagnostics.errorMessage = '';
+        
+        return diagnostics;
+        
+    } catch (error) {
+        diagnostics.errorMessage = `診断中にエラーが発生しました: ${error.message}`;
+        console.error('Google API診断エラー:', error);
+        return diagnostics;
+    }
 }
 
 // APIキーの状態をチェックして入力フィールドを非表示にする
@@ -691,22 +878,16 @@ async function authenticateGoogle() {
     try {
         showLoadingOverlay('Google認証中...');
         
-        // Google APIが利用可能かチェック
-        if (!window.googleApiLoaded || !window.gapi) {
-            throw new Error('Google APIが読み込まれていません。ページを再読み込みしてください。');
+        // 詳細な診断情報を取得
+        const diagnostics = await getGoogleApiDiagnostics();
+        console.log('Google API診断結果:', diagnostics);
+        
+        if (!diagnostics.canAuthenticate) {
+            throw new Error(diagnostics.errorMessage);
         }
         
         // Auth2インスタンスの取得
-        let authInstance = null;
-        
-        if (window.gapi.auth2) {
-            authInstance = window.gapi.auth2.getAuthInstance();
-        }
-        
-        // 初期化されていない場合はエラー
-        if (!authInstance || typeof authInstance.isSignedIn !== 'function') {
-            throw new Error('Google APIが初期化されていません。ページを再読み込みしてGoogle Sheetsボタンが表示されることを確認してください。');
-        }
+        const authInstance = diagnostics.authInstance;
         
         console.log('Using Google Auth2 instance for authentication');
         
