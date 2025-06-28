@@ -20,10 +20,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         
         // JSONファイルに保存
-        file_put_contents($apiKeysFile, json_encode($keys, JSON_PRETTY_PRINT));
+        $result = file_put_contents($apiKeysFile, json_encode($keys, JSON_PRETTY_PRINT));
         
-        // 成功メッセージと自動リダイレクト
-        $message = ['type' => 'success', 'text' => 'APIキーが保存されました。3秒後にメインページに移動します。'];
+        if ($result === false) {
+            $message = ['type' => 'error', 'text' => 'APIキーの保存に失敗しました。ファイルの書き込み権限を確認してください。'];
+        } else {
+            // 保存内容を確認
+            $savedCount = 0;
+            foreach ($keys as $key => $value) {
+                if (!empty(trim($value))) {
+                    $savedCount++;
+                }
+            }
+            
+            // 成功メッセージと自動リダイレクト
+            $message = ['type' => 'success', 'text' => "設定が保存されました（{$savedCount}個の項目）。3秒後にメインページに移動します。"];
+        }
         
         // APIキーが設定されているかチェック
         $hasApiKeys = false;
@@ -44,6 +56,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $apiKey = $_POST['api_key'] ?? '';
         
         $result = testApiConnection($provider, $apiKey);
+        echo json_encode($result);
+        exit;
+    } elseif ($action === 'test_google_oauth') {
+        // Google OAuth設定のテスト
+        header('Content-Type: application/json');
+        $clientId = $_POST['client_id'] ?? '';
+        $clientSecret = $_POST['client_secret'] ?? '';
+        
+        $result = testGoogleOAuth($clientId, $clientSecret);
         echo json_encode($result);
         exit;
     }
@@ -143,6 +164,81 @@ function testGoogleAI($apiKey) {
         return ['success' => true, 'message' => 'Google AI APIへの接続に成功しました。'];
     } else {
         return ['success' => false, 'message' => 'Google AI APIへの接続に失敗しました。HTTPコード: ' . $httpCode];
+    }
+}
+
+function testGoogleOAuth($clientId, $clientSecret) {
+    // 基本的な形式チェック
+    if (empty($clientId) || empty($clientSecret)) {
+        return ['success' => false, 'message' => 'Client IDとClient Secretの両方が必要です。'];
+    }
+    
+    // Client IDの形式チェック (Google OAuth Client IDは特定の形式を持つ)
+    if (!preg_match('/^[0-9]+-[a-zA-Z0-9_]+\.apps\.googleusercontent\.com$/', $clientId)) {
+        return ['success' => false, 'message' => 'Client IDの形式が正しくありません。正しい形式: xxxxx.apps.googleusercontent.com'];
+    }
+    
+    // Client Secretの形式チェック
+    if (!preg_match('/^GOCSPX-[a-zA-Z0-9_-]+$/', $clientSecret)) {
+        return ['success' => false, 'message' => 'Client Secretの形式が正しくありません。正しい形式: GOCSPX-xxxxx'];
+    }
+    
+    // Google OAuth2エンドポイントへの簡単な検証リクエスト
+    try {
+        $url = 'https://oauth2.googleapis.com/token';
+        $postData = [
+            'client_id' => $clientId,
+            'client_secret' => $clientSecret,
+            'grant_type' => 'client_credentials'
+        ];
+        
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => http_build_query($postData),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/x-www-form-urlencoded'
+            ],
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_SSL_VERIFYPEER => true
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        // client_credentials grant typeは通常400エラーを返すが、
+        // 無効なclient_idの場合は401 unauthorized、
+        // 無効なclient_secretの場合は401 invalid_clientを返す
+        
+        $responseData = json_decode($response, true);
+        
+        if ($httpCode === 400 && isset($responseData['error']) && 
+            $responseData['error'] === 'unsupported_grant_type') {
+            // これは正常 - クライアント認証情報は有効だが、grant_typeが無効
+            return ['success' => true, 'message' => 'Google OAuth設定が有効です。'];
+        } elseif ($httpCode === 401) {
+            if (isset($responseData['error'])) {
+                switch ($responseData['error']) {
+                    case 'invalid_client':
+                        return ['success' => false, 'message' => 'Client IDまたはClient Secretが無効です。'];
+                    case 'unauthorized_client':
+                        return ['success' => false, 'message' => 'クライアントが認証されていません。Client IDとSecretを確認してください。'];
+                    default:
+                        return ['success' => false, 'message' => 'OAuth認証に失敗しました: ' . $responseData['error']];
+                }
+            } else {
+                return ['success' => false, 'message' => 'Client IDまたはClient Secretが無効です。'];
+            }
+        } else {
+            // その他のエラーの場合は形式チェックで OK とする
+            return ['success' => true, 'message' => 'Google OAuth設定の形式は正しいです。実際の認証は使用時に検証されます。'];
+        }
+        
+    } catch (Exception $e) {
+        return ['success' => false, 'message' => 'OAuth設定の検証中にエラーが発生しました: ' . $e->getMessage()];
     }
 }
 ?>
@@ -421,9 +517,19 @@ function testGoogleAI($apiKey) {
                 
                 <div class="form-group">
                     <label for="google_client_secret">Google Client Secret</label>
-                    <input type="password" id="google_client_secret" name="google_client_secret"
-                           value="<?php echo htmlspecialchars($savedKeys['google_client_secret'] ?? ''); ?>"
-                           placeholder="GOCSPX-...">
+                    <div class="input-group">
+                        <input type="password" id="google_client_secret" name="google_client_secret"
+                               value="<?php echo htmlspecialchars($savedKeys['google_client_secret'] ?? ''); ?>"
+                               placeholder="GOCSPX-...">
+                        <button type="button" class="btn btn-test" onclick="testGoogleOAuth()">
+                            <span id="google-oauth-test-text">テスト</span>
+                        </button>
+                    </div>
+                    <div id="google-oauth-result" class="test-result"></div>
+                    <p class="help-text">
+                        <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> で取得<br>
+                        リダイレクトURI: <code>https://mokumoku.sakura.ne.jp/persona/google_auth.php</code>
+                    </p>
                 </div>
             </div>
             
@@ -459,6 +565,48 @@ function testGoogleAI($apiKey) {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: `action=test_api&provider=${provider}&api_key=${encodeURIComponent(apiKey)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                testButton.textContent = 'テスト';
+                resultDiv.className = 'test-result ' + (data.success ? 'success' : 'error');
+                resultDiv.textContent = data.message;
+                resultDiv.style.display = 'block';
+            })
+            .catch(error => {
+                testButton.textContent = 'テスト';
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = 'テスト中にエラーが発生しました: ' + error.message;
+                resultDiv.style.display = 'block';
+            });
+        }
+        
+        function testGoogleOAuth() {
+            const clientIdInput = document.getElementById('google_client_id');
+            const clientSecretInput = document.getElementById('google_client_secret');
+            const resultDiv = document.getElementById('google-oauth-result');
+            const testButton = document.getElementById('google-oauth-test-text');
+            const clientId = clientIdInput.value.trim();
+            const clientSecret = clientSecretInput.value.trim();
+            
+            if (!clientId || !clientSecret) {
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = 'Client IDとClient Secretの両方を入力してください。';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            // ローディング表示
+            testButton.innerHTML = '<span class="spinner"></span>';
+            resultDiv.style.display = 'none';
+            
+            // Google OAuth設定テスト
+            fetch('setup.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `action=test_google_oauth&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`
             })
             .then(response => response.json())
             .then(data => {

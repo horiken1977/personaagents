@@ -658,60 +658,61 @@ async function authenticateGoogle() {
             throw new Error('Google APIが読み込まれていません。ページを再読み込みしてください。');
         }
         
-        // Google API初期化を待つ
-        let authInstance = null;
-        let retryCount = 0;
-        const maxRetries = 10;
+        // まずGoogle設定を確認
+        const response = await fetch('/persona/api.php?action=get_google_config');
+        const configData = await response.json();
         
-        while (!authInstance && retryCount < maxRetries) {
-            try {
-                if (window.gapi.auth2) {
-                    authInstance = window.gapi.auth2.getAuthInstance();
+        if (!configData || !configData.client_id || configData.client_id.trim() === '') {
+            throw new Error('Google Client IDが設定されていません。設定画面でGoogle OAuth設定を完了してください。');
+        }
+        
+        console.log('Google Client ID found:', configData.client_id.substring(0, 20) + '...');
+        
+        // Google API初期化を試みる
+        let authInstance = null;
+        
+        try {
+            // 既に初期化されているかチェック
+            if (window.gapi.auth2) {
+                authInstance = window.gapi.auth2.getAuthInstance();
+                if (authInstance && authInstance.isSignedIn !== undefined) {
+                    console.log('Google Auth2 already initialized');
                 }
-                
-                if (!authInstance) {
-                    console.log(`Google API初期化待機中... (${retryCount + 1}/${maxRetries})`);
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    retryCount++;
-                } else {
-                    break;
-                }
-            } catch (e) {
-                console.log('認証インスタンス取得中のエラー:', e);
-                await new Promise(resolve => setTimeout(resolve, 500));
-                retryCount++;
             }
+            
+            // 初期化されていない場合は新規初期化
+            if (!authInstance || authInstance.isSignedIn === undefined) {
+                console.log('Initializing Google Auth2...');
+                
+                await new Promise((resolve, reject) => {
+                    window.gapi.load('auth2', {
+                        callback: async () => {
+                            try {
+                                authInstance = await window.gapi.auth2.init({
+                                    client_id: configData.client_id,
+                                    scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
+                                });
+                                console.log('Google Auth2 initialized successfully');
+                                resolve();
+                            } catch (error) {
+                                console.error('Google Auth2 init error:', error);
+                                reject(error);
+                            }
+                        },
+                        onerror: (error) => {
+                            console.error('Google API load error:', error);
+                            reject(new Error('Google APIの読み込みに失敗しました'));
+                        }
+                    });
+                });
+            }
+            
+        } catch (initError) {
+            throw new Error('Google API初期化に失敗しました: ' + initError.message);
         }
         
         if (!authInstance) {
-            // Google APIを手動で初期化を試みる
-            try {
-                const response = await fetch('/persona/api.php?action=get_google_config');
-                const data = await response.json();
-                
-                if (data && data.client_id) {
-                    await new Promise((resolve, reject) => {
-                        window.gapi.load('auth2', {
-                            callback: async () => {
-                                try {
-                                    authInstance = await window.gapi.auth2.init({
-                                        client_id: data.client_id,
-                                        scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
-                                    });
-                                    resolve();
-                                } catch (error) {
-                                    reject(error);
-                                }
-                            },
-                            onerror: reject
-                        });
-                    });
-                } else {
-                    throw new Error('Google Client IDが設定されていません。設定画面で設定してください。');
-                }
-            } catch (initError) {
-                throw new Error('Google API初期化に失敗しました: ' + initError.message);
-            }
+            throw new Error('Google認証インスタンスの初期化に失敗しました');
         }
         
         // 認証状態をチェック
@@ -723,6 +724,7 @@ async function authenticateGoogle() {
             showSuccessMessage('Google認証が完了しました。');
         } else {
             // サインインを開始
+            console.log('Starting Google sign-in...');
             const user = await authInstance.signIn({
                 scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
             });
