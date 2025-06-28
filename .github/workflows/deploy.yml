@@ -13,15 +13,30 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Deploy via SFTP
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-      with:
-        server: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        password: ${{ secrets.SFTP_PASSWORD }}
-        local_path: './'
-        remote_path: ${{ secrets.SSH_REMOTE_PATH }}
-        sftpArgs: '-o ConnectTimeout=5'
+    - name: Deploy files
+      env:
+        SSHPASS: ${{ secrets.SFTP_PASSWORD }}
+      run: |
+        # Install sshpass for password authentication
+        sudo apt-get update
+        sudo apt-get install -y sshpass rsync
+        
+        # Deploy using rsync with exclusions
+        sshpass -e rsync -avz --delete \
+          --exclude='.git/' \
+          --exclude='.github/' \
+          --exclude='logs/' \
+          --exclude='tests/' \
+          --exclude='docs/' \
+          --exclude='*.log' \
+          --exclude='.env*' \
+          --exclude='README.md' \
+          --exclude='SETUP.md' \
+          --exclude='.DS_Store' \
+          --exclude='*.tmp' \
+          --exclude='*.bak' \
+          -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5" \
+          ./ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_REMOTE_PATH }}
         
     - name: Deployment notification
       run: |
