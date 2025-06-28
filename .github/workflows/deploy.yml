@@ -20,7 +20,7 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
         local_path: './'
-        remote_path: ${{ secrets.SSH_REMOTE_PATH }}
+        remote_path: ${{ secrets.SSH_REMOTE_PATH || '/home/mokumoku/www/persona/' }}
         sftpArgs: '-o ConnectTimeout=5'
         
     - name: Deployment notification
