@@ -27,7 +27,17 @@ header('Content-Type: text/html; charset=utf-8');
         if (file_exists($apiKeysFile)) {
             $keys = json_decode(file_get_contents($apiKeysFile), true);
             echo '<p class="success">✓ api_keys.json exists</p>';
-            echo '<pre>' . json_encode($keys, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . '</pre>';
+            
+            // APIキーをマスク表示
+            $maskedKeys = [];
+            foreach ($keys as $key => $value) {
+                if (!empty($value) && strlen($value) > 10) {
+                    $maskedKeys[$key] = substr($value, 0, 6) . '...' . substr($value, -4);
+                } else {
+                    $maskedKeys[$key] = $value;
+                }
+            }
+            echo '<pre>' . json_encode($maskedKeys, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . '</pre>';
             
             // APIキーの存在確認
             echo '<h3>API Key Status:</h3>';
