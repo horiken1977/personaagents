@@ -35,8 +35,13 @@
                 
                 <div class="settings-group">
                     <label for="apiKey">APIキー:</label>
-                    <input type="password" id="apiKey" class="settings-input" placeholder="APIキーを入力してください">
-                    <small class="settings-help">APIキーはブラウザのセッション中のみ保存されます</small>
+                    <div class="api-key-group">
+                        <input type="password" id="apiKey" class="settings-input" placeholder="APIキーを入力してください">
+                        <button id="testApiBtn" class="btn btn-test" disabled>疎通確認</button>
+                        <button id="saveApiBtn" class="btn btn-save" disabled>保存</button>
+                    </div>
+                    <div id="apiTestResult" class="api-test-result"></div>
+                    <small class="settings-help">APIキーは安全にブラウザに保存されます（保存ボタンクリック時）</small>
                 </div>
             </section>
         </main>

@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadPersonas();
     initializeEventListeners();
     loadSettings();
+    loadSavedApiKeys();
 });
 
 // ペルソナデータの読み込み
@@ -173,7 +174,30 @@ function initializeEventListeners() {
     if (llmProvider) {
         llmProvider.addEventListener('change', function() {
             updateApiKeyPlaceholder(this.value);
+            loadSavedApiKey(this.value);
         });
+    }
+
+    // APIキー入力時の処理
+    const apiKeyInput = document.getElementById('apiKey');
+    if (apiKeyInput) {
+        apiKeyInput.addEventListener('input', function() {
+            const hasKey = this.value.trim().length > 0;
+            document.getElementById('testApiBtn').disabled = !hasKey;
+            document.getElementById('saveApiBtn').disabled = !hasKey;
+        });
+    }
+
+    // API疎通確認ボタン
+    const testApiBtn = document.getElementById('testApiBtn');
+    if (testApiBtn) {
+        testApiBtn.addEventListener('click', testApiConnection);
+    }
+
+    // API保存ボタン
+    const saveApiBtn = document.getElementById('saveApiBtn');
+    if (saveApiBtn) {
+        saveApiBtn.addEventListener('click', saveApiKey);
     }
 }
 
@@ -261,6 +285,130 @@ function showErrorMessage(message) {
             setTimeout(() => errorDiv.remove(), 300);
         }
     }, 3000);
+}
+
+// APIキー保存機能
+function saveApiKey() {
+    const provider = document.getElementById('llmProvider').value;
+    const apiKey = document.getElementById('apiKey').value.trim();
+    
+    if (!apiKey) {
+        showErrorMessage('APIキーを入力してください');
+        return;
+    }
+    
+    try {
+        localStorage.setItem(`apiKey_${provider}`, apiKey);
+        showSuccessMessage('APIキーを保存しました');
+    } catch (error) {
+        console.error('APIキー保存エラー:', error);
+        showErrorMessage('APIキーの保存に失敗しました');
+    }
+}
+
+// 保存されたAPIキーの読み込み
+function loadSavedApiKeys() {
+    const provider = document.getElementById('llmProvider').value;
+    loadSavedApiKey(provider);
+}
+
+function loadSavedApiKey(provider) {
+    try {
+        const savedKey = localStorage.getItem(`apiKey_${provider}`);
+        const apiKeyInput = document.getElementById('apiKey');
+        
+        if (savedKey && apiKeyInput) {
+            apiKeyInput.value = savedKey;
+            document.getElementById('testApiBtn').disabled = false;
+            document.getElementById('saveApiBtn').disabled = false;
+        } else if (apiKeyInput) {
+            apiKeyInput.value = '';
+            document.getElementById('testApiBtn').disabled = true;
+            document.getElementById('saveApiBtn').disabled = true;
+        }
+    } catch (error) {
+        console.warn('APIキー読み込みエラー:', error);
+    }
+}
+
+// API疎通確認
+async function testApiConnection() {
+    const provider = document.getElementById('llmProvider').value;
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const resultDiv = document.getElementById('apiTestResult');
+    
+    if (!apiKey) {
+        showErrorMessage('APIキーを入力してください');
+        return;
+    }
+    
+    // テスト中表示
+    resultDiv.className = 'api-test-result testing';
+    resultDiv.textContent = 'API接続をテスト中...';
+    
+    try {
+        const response = await fetch('api.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                provider: provider,
+                apiKey: apiKey,
+                prompt: 'Hello, please respond with "Test successful" if you receive this message.',
+                personaId: 1,
+                test: true
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.response) {
+            resultDiv.className = 'api-test-result success';
+            resultDiv.textContent = '✅ API接続に成功しました';
+        } else {
+            resultDiv.className = 'api-test-result error';
+            resultDiv.textContent = `❌ API接続に失敗: ${result.error || '不明なエラー'}`;
+        }
+    } catch (error) {
+        console.error('API接続テストエラー:', error);
+        resultDiv.className = 'api-test-result error';
+        resultDiv.textContent = '❌ 接続エラーが発生しました';
+    }
+}
+
+// 成功メッセージ表示
+function showSuccessMessage(message) {
+    const existingMessage = document.querySelector('.success-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+
+    const successDiv = document.createElement('div');
+    successDiv.className = 'success-message';
+    successDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 1001;
+        font-weight: 500;
+        animation: slideIn 0.3s ease-out;
+    `;
+    successDiv.textContent = message;
+
+    document.body.appendChild(successDiv);
+
+    setTimeout(() => {
+        if (successDiv.parentNode) {
+            successDiv.style.animation = 'slideOut 0.3s ease-in';
+            setTimeout(() => successDiv.remove(), 300);
+        }
+    }, 2000);
 }
 
 // CSS アニメーション追加

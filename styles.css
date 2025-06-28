@@ -189,6 +189,16 @@ body {
     transition: border-color 0.3s ease;
 }
 
+.api-key-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.api-key-group .settings-input {
+    flex: 1;
+}
+
 .settings-select:focus,
 .settings-input:focus {
     outline: none;
@@ -200,6 +210,35 @@ body {
     color: #666;
     font-size: 0.85rem;
     margin-top: 5px;
+}
+
+.api-test-result {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    display: none;
+}
+
+.api-test-result.success {
+    display: block;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.api-test-result.error {
+    display: block;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.api-test-result.testing {
+    display: block;
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
 }
 
 /* モーダル */
@@ -266,6 +305,40 @@ body {
 
 .btn-secondary:hover {
     background: #5a6268;
+}
+
+.btn-test {
+    background: #28a745;
+    color: white;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    min-width: 80px;
+}
+
+.btn-test:hover:not(:disabled) {
+    background: #218838;
+}
+
+.btn-test:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.btn-save {
+    background: #17a2b8;
+    color: white;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    min-width: 60px;
+}
+
+.btn-save:hover:not(:disabled) {
+    background: #138496;
+}
+
+.btn-save:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
 }
 
 /* フッター */

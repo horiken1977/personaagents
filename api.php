@@ -47,6 +47,12 @@ class LLMAPIHub {
                 throw new Exception('Rate limit exceeded', 429);
             }
             
+            // テストモードの確認
+            if (isset($input['test']) && $input['test'] === true) {
+                // テスト用の簡単なプロンプトに変更
+                $input['prompt'] = 'Hello, please respond with "Test successful" if you receive this message.';
+            }
+            
             // LLM API呼び出し
             $response = $this->callLLMAPI($input);
             
