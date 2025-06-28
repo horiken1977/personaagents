@@ -13,15 +13,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Deploy via SFTP
-      uses: pressidium/lftp-mirror-action@v1
+    - name: Deploy via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
-        host: ${{ secrets.FTP_HOST }}
-        user: ${{ secrets.FTP_USERNAME }}
-        pass: ${{ secrets.FTP_PASSWORD }}
-        localDir: './'
-        remoteDir: ${{ secrets.FTP_SERVER_DIR }}
-        options: '--verbose --exclude .git/ --exclude .github/ --exclude node_modules/ --exclude .DS_Store --exclude README.md --exclude .gitignore'
+        server: ${{ secrets.FTP_HOST }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        server-dir: ${{ secrets.FTP_SERVER_DIR }}
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          .DS_Store
+          README.md
+          .env
+          .env.*
+          logs/
+          *.log
         
     - name: Deployment notification
       run: |
