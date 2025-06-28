@@ -41,7 +41,7 @@ ServerSignature Off
 # ============================================================================
 
 # PHPエラー表示設定（本番環境では Off）
-php_flag display_errors On
+php_flag display_errors Off
 php_flag log_errors On
 php_value error_log logs/php_error.log
 
@@ -155,9 +155,9 @@ RewriteRule ^sheets/(.*)$ sheets_integration.php [QSA,L]
 # エラーページ設定
 # ============================================================================
 
-ErrorDocument 404 /agetsite/error.php?code=404
-ErrorDocument 403 /agetsite/error.php?code=403
-ErrorDocument 500 /agetsite/error.php?code=500
+ErrorDocument 404 /persona/error.php?code=404
+ErrorDocument 403 /persona/error.php?code=403
+ErrorDocument 500 /persona/error.php?code=500
 
 # ============================================================================
 # パフォーマンス最適化

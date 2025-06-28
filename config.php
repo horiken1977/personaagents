@@ -4,9 +4,24 @@
  * 環境変数と設定定数を管理
  */
 
+// .envファイルの読み込み（存在する場合）
+if (file_exists(__DIR__ . '/.env')) {
+    $envLines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($envLines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+            putenv("$key=$value");
+            $_ENV[$key] = $value;
+        }
+    }
+}
+
 // エラー報告設定（本番環境では無効にする）
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
 // タイムゾーン設定
 date_default_timezone_set('Asia/Tokyo');
@@ -47,15 +62,15 @@ const LLM_PROVIDERS = [
 ];
 
 // Google API設定
-$GOOGLE_API_CONFIG = [
+define('GOOGLE_API_CONFIG', [
     'client_id' => getenv('GOOGLE_CLIENT_ID') ?: '',
     'client_secret' => getenv('GOOGLE_CLIENT_SECRET') ?: '',
-    'redirect_uri' => getenv('GOOGLE_REDIRECT_URI') ?: 'http://localhost/agetsite/google_auth.php',
+    'redirect_uri' => getenv('GOOGLE_REDIRECT_URI') ?: 'https://mokumoku.sakura.ne.jp/persona/google_auth.php',
     'scopes' => [
         'https://www.googleapis.com/auth/spreadsheets',
         'https://www.googleapis.com/auth/drive.file'
     ]
-];
+]);
 
 // セキュリティ設定
 const SECURITY_CONFIG = [
@@ -73,20 +88,20 @@ const SECURITY_CONFIG = [
 ];
 
 // ログ設定
-$LOG_CONFIG = [
+define('LOG_CONFIG', [
     'error_log' => __DIR__ . '/logs/error.log',
     'access_log' => __DIR__ . '/logs/access.log',
     'debug_mode' => getenv('DEBUG_MODE') === 'true'
-];
+]);
 
 // データベース設定（将来の拡張用）
-$DB_CONFIG = [
+define('DB_CONFIG', [
     'host' => getenv('DB_HOST') ?: 'localhost',
-    'name' => getenv('DB_NAME') ?: 'agetsite',
+    'name' => getenv('DB_NAME') ?: 'personaagent',
     'user' => getenv('DB_USER') ?: 'root',
     'pass' => getenv('DB_PASS') ?: '',
     'charset' => 'utf8mb4'
-];
+]);
 
 /**
  * 設定値を取得する関数
