@@ -500,23 +500,46 @@ function exportChatHistory() {
     showSuccessMessage('履歴をエクスポートしました。');
 }
 
+// Google API読み込み後の初期化コールバック
+window.initializeGoogleAPIAfterLoad = function() {
+    console.log('Starting Google API initialization after load...');
+    
+    // 少し遅延させてからinitializeGoogleAPIを呼び出し
+    setTimeout(() => {
+        if (window.gapi && window.gapi.load) {
+            initializeGoogleAPI();
+        } else {
+            console.error('Google API not properly loaded');
+            disableGoogleFeatures();
+        }
+    }, 500);
+};
+
 // Google API初期化（安全版）
 function initializeGoogleAPIIfAvailable() {
     try {
-        // Google APIスクリプトが読み込まれているかチェック
-        if (window.googleApiError) {
-            console.log('Google API script failed to load - Sheets export will be unavailable');
-            disableGoogleFeatures();
-            return false;
+        // 新しい状態管理システムを使用
+        if (window.googleApiState) {
+            if (window.googleApiState.error) {
+                console.log('Google API script failed to load - Sheets export will be unavailable');
+                disableGoogleFeatures();
+                return false;
+            }
+            
+            if (!window.googleApiState.loaded) {
+                console.log('Google API script not loaded yet');
+                return false; // リトライのためにfalseを返す
+            }
+            
+            if (window.googleApiState.initialized) {
+                console.log('Google API already initialized');
+                enableGoogleFeatures();
+                return true;
+            }
         }
         
-        if (!window.googleApiLoaded || typeof window.gapi === 'undefined' || !window.gapi) {
-            console.log('Google API script not loaded yet');
-            return false; // リトライのためにfalseを返す
-        }
-        
-        // gapiオブジェクトが完全に初期化されているかチェック
-        if (!window.gapi.load) {
+        // 旧システムとの互換性チェック
+        if (!window.gapi || !window.gapi.load) {
             console.log('Google API not fully loaded yet');
             return false; // リトライのためにfalseを返す
         }
@@ -574,80 +597,82 @@ async function initializeGoogleAPI() {
             }
         }
         
-        // Auth2ライブラリの読み込みと初期化（エラー回復付き）
-        await new Promise((resolve, reject) => {
-            console.log('Loading Google Auth2 library...');
-            
-            // タイムアウト設定
-            const timeoutId = setTimeout(() => {
-                console.error('Google Auth2 library loading timed out');
-                // タイムアウト時の状態回復を試みる
-                tryRecoverGoogleApiState().then(recovered => {
-                    if (recovered) {
-                        console.log('Google API state recovered from timeout');
-                        enableGoogleFeatures();
-                        resolve();
-                    } else {
-                        reject(new Error('Google Auth2 library loading timed out and recovery failed'));
-                    }
-                }).catch(err => {
-                    reject(new Error(`Google Auth2 library loading timed out: ${err.message}`));
-                });
-            }, 15000);
-            
+        // 新しいアプローチ: gapi.loadを使わずに直接初期化
+        console.log('Attempting direct Google Auth2 initialization...');
+        
+        // まず、Auth2ライブラリが既に読み込まれているかチェック
+        let retryCount = 0;
+        const maxRetries = 30; // 3秒間隔で30回 = 90秒
+        
+        while (retryCount < maxRetries) {
             try {
-                window.gapi.load('auth2', {
-                    callback: async () => {
+                // Google Auth2が利用可能になるまで待機
+                if (window.gapi && window.gapi.auth2) {
+                    console.log('Google Auth2 library detected, attempting initialization...');
+                    break;
+                }
+                
+                // Auth2が利用可能でない場合は読み込みを試行
+                if (window.gapi && window.gapi.load && retryCount === 0) {
+                    console.log('Loading Google Auth2 library using alternative method...');
+                    
+                    // Promiseでwrapしてタイムアウトを設定
+                    const loadPromise = new Promise((resolve, reject) => {
+                        const timeoutId = setTimeout(() => {
+                            reject(new Error('Auth2 load timeout'));
+                        }, 10000);
+                        
                         try {
-                            clearTimeout(timeoutId);
-                            console.log('Google Auth2 library loaded, initializing...');
-                            
-                            const authInstance = await window.gapi.auth2.init({
-                                client_id: data.client_id,
-                                scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
+                            window.gapi.load('auth2', () => {
+                                clearTimeout(timeoutId);
+                                resolve();
                             });
-                            
-                            console.log('Google Auth2 initialized successfully');
-                            enableGoogleFeatures();
-                            resolve();
-                            
-                        } catch (error) {
+                        } catch (e) {
                             clearTimeout(timeoutId);
-                            console.error('Google auth2 init failed:', error);
-                            
-                            // 初期化失敗時の詳細エラー情報
-                            let detailedError = `Google Auth2初期化失敗: ${error.message}`;
-                            if (error.error) {
-                                detailedError += ` (${error.error})`;
-                            }
-                            if (error.details) {
-                                detailedError += ` - 詳細: ${JSON.stringify(error.details)}`;
-                            }
-                            
-                            console.error('詳細エラー情報:', detailedError);
-                            showErrorMessage(detailedError);
-                            disableGoogleFeatures();
-                            reject(new Error(detailedError));
+                            reject(e);
                         }
-                    },
-                    onerror: (error) => {
-                        clearTimeout(timeoutId);
-                        console.error('Failed to load Google Auth2 library:', error);
-                        const errorMsg = `Google Auth2ライブラリの読み込みに失敗しました: ${error ? JSON.stringify(error) : '不明なエラー'}`;
-                        showErrorMessage(errorMsg);
-                        disableGoogleFeatures();
-                        reject(new Error(errorMsg));
+                    });
+                    
+                    try {
+                        await loadPromise;
+                        console.log('Auth2 library loaded successfully');
+                        break;
+                    } catch (loadError) {
+                        console.warn('Failed to load Auth2 with gapi.load, continuing with polling...');
                     }
-                });
-            } catch (loadError) {
-                clearTimeout(timeoutId);
-                const errorMsg = `Google APIライブラリの読み込み中にエラーが発生しました: ${loadError.message}`;
-                console.error(errorMsg);
-                showErrorMessage(errorMsg);
-                disableGoogleFeatures();
-                reject(new Error(errorMsg));
+                }
+                
+                console.log(`Waiting for Google Auth2 library... (${retryCount + 1}/${maxRetries})`);
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                retryCount++;
+                
+            } catch (waitError) {
+                console.error('Error while waiting for Auth2:', waitError);
+                retryCount++;
+                await new Promise(resolve => setTimeout(resolve, 3000));
             }
+        }
+        
+        if (retryCount >= maxRetries) {
+            throw new Error('Google Auth2ライブラリの読み込みがタイムアウトしました。ネットワーク接続を確認してください。');
+        }
+        
+        // Auth2の初期化
+        console.log('Initializing Google Auth2...');
+        const authInstance = await window.gapi.auth2.init({
+            client_id: data.client_id,
+            scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file'
         });
+        
+        console.log('Google Auth2 initialized successfully');
+        
+        // 状態を更新
+        if (window.googleApiState) {
+            window.googleApiState.initialized = true;
+            window.googleApiState.authReady = true;
+        }
+        
+        enableGoogleFeatures();
         
     } catch (error) {
         console.log('Google API initialization error:', error);
@@ -738,16 +763,25 @@ async function getGoogleApiDiagnostics() {
     
     try {
         // 1. Google APIスクリプトの読み込み状態
-        diagnostics.details.scriptLoaded = window.googleApiLoaded || false;
-        diagnostics.details.scriptError = window.googleApiError || false;
+        if (window.googleApiState) {
+            diagnostics.details.scriptLoaded = window.googleApiState.loaded;
+            diagnostics.details.scriptError = window.googleApiState.error;
+            diagnostics.details.initialized = window.googleApiState.initialized;
+            diagnostics.details.authReady = window.googleApiState.authReady;
+        } else {
+            // 旧システムとの互換性
+            diagnostics.details.scriptLoaded = window.googleApiLoaded || false;
+            diagnostics.details.scriptError = window.googleApiError || false;
+        }
+        
         diagnostics.details.gapiAvailable = typeof window.gapi !== 'undefined';
         
-        if (window.googleApiError) {
+        if (diagnostics.details.scriptError) {
             diagnostics.errorMessage = 'Google APIスクリプトの読み込みに失敗しました。ネットワーク接続を確認してページを再読み込みしてください。';
             return diagnostics;
         }
         
-        if (!window.googleApiLoaded || !window.gapi) {
+        if (!diagnostics.details.scriptLoaded || !window.gapi) {
             diagnostics.errorMessage = 'Google APIが読み込まれていません。ページを再読み込みしてください。';
             return diagnostics;
         }

@@ -119,29 +119,60 @@
     </div>
 
     <script>
-        // Google APIの動的読み込み
-        window.googleApiLoaded = false;
-        window.googleApiError = false;
+        // Google APIの状態管理
+        window.googleApiState = {
+            loaded: false,
+            error: false,
+            initialized: false,
+            authReady: false
+        };
         
+        // Google APIの初期化コールバック
+        window.handleGoogleApiLoad = function() {
+            console.log('Google API load callback triggered');
+            window.googleApiState.loaded = true;
+            
+            // Chat.jsが読み込まれている場合は初期化を開始
+            if (window.initializeGoogleAPIAfterLoad) {
+                window.initializeGoogleAPIAfterLoad();
+            }
+        };
+        
+        // Google API読み込み関数
         function loadGoogleAPI() {
             return new Promise((resolve, reject) => {
-                if (window.googleApiLoaded) {
+                if (window.googleApiState.loaded) {
                     resolve();
                     return;
                 }
                 
                 const script = document.createElement('script');
-                script.src = 'https://apis.google.com/js/api.js';
-                script.onload = () => {
-                    window.googleApiLoaded = true;
-                    console.log('Google API script loaded successfully');
-                    resolve();
-                };
+                script.src = 'https://apis.google.com/js/api.js?onload=handleGoogleApiLoad';
                 script.onerror = () => {
-                    window.googleApiError = true;
+                    window.googleApiState.error = true;
                     console.error('Failed to load Google API script');
                     reject(new Error('Google APIスクリプトの読み込みに失敗しました'));
                 };
+                
+                // タイムアウト処理
+                const timeout = setTimeout(() => {
+                    if (!window.googleApiState.loaded) {
+                        window.googleApiState.error = true;
+                        reject(new Error('Google APIスクリプトの読み込みがタイムアウトしました'));
+                    }
+                }, 10000);
+                
+                // 成功時の処理
+                const checkLoaded = () => {
+                    if (window.googleApiState.loaded) {
+                        clearTimeout(timeout);
+                        resolve();
+                    } else {
+                        setTimeout(checkLoaded, 100);
+                    }
+                };
+                checkLoaded();
+                
                 document.head.appendChild(script);
             });
         }
