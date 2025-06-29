@@ -38,11 +38,25 @@ class ProgressGenerator {
                     }
                 }
                 
+                // タスクに関連するドキュメントへのリンクを検出
+                let documentLink = null;
+                if (isCompleted) {
+                    if (taskName.includes('要件定義とアプリケーション仕様の策定')) {
+                        // このタスクには複数のドキュメントがあるので、配列として扱う
+                        documentLink = ['requirements-definition.html', 'roic-calculation-spec.html'];
+                    } else if (taskName.includes('要件定義')) {
+                        documentLink = 'requirements-definition.html';
+                    } else if (taskName.includes('ROIC計算仕様')) {
+                        documentLink = 'roic-calculation-spec.html';
+                    }
+                }
+                
                 tasks.push({
                     name: taskName,
                     completed: isCompleted,
                     priority: priority,
-                    description: this.extractDescription(lines, line)
+                    description: this.extractDescription(lines, line),
+                    documentLink: documentLink
                 });
                 
                 stats.total++;
@@ -262,12 +276,26 @@ class ProgressGenerator {
             font-weight: 600;
             margin-bottom: 8px;
             font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .task-description {
             font-size: 14px;
             color: #666;
             line-height: 1.5;
+        }
+        
+        .doc-link {
+            text-decoration: none;
+            font-size: 18px;
+            transition: transform 0.2s ease;
+            display: inline-block;
+        }
+        
+        .doc-link:hover {
+            transform: scale(1.2);
         }
         
         .priority-badge {
@@ -365,7 +393,17 @@ class ProgressGenerator {
                             ${task.completed ? '✓' : '○'}
                         </div>
                         <div class="task-content">
-                            <div class="task-title">${task.name}</div>
+                            <div class="task-title">
+                                ${task.name}
+                                ${task.documentLink ? 
+                                    (Array.isArray(task.documentLink) ? 
+                                        task.documentLink.map(link => {
+                                            const title = link.includes('requirements') ? '要件定義書' : 'ROIC計算仕様書';
+                                            return `<a href="${link}" class="doc-link" title="${title}を表示">📄</a>`;
+                                        }).join(' ')
+                                        : `<a href="${task.documentLink}" class="doc-link" title="ドキュメントを表示">📄</a>`)
+                                    : ''}
+                            </div>
                             <div class="task-description">${task.description}</div>
                         </div>
                         <span class="priority-badge ${task.priority}">${task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'}</span>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROIC計算仕様書</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            background-color: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        .content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 3px 20px rgba(0,0,0,0.08);
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        h3 {
+            color: #495057;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        
+        h4 {
+            color: #6c757d;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid #e9ecef;
+        }
+        
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: #e83e8c;
+        }
+        
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #333;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background-color: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .formula-box {
+            background-color: #f0f4ff;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .calculation-example {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .note-box {
+            background-color: #fff8e1;
+            border: 1px solid #ffeb3b;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .note-box::before {
+            content: "📌 ";
+            font-size: 18px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+                padding: 20px;
+            }
+            
+            table {
+                font-size: 14px;
+            }
+            
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="progress-dashboard.html" class="back-link">← ダッシュボードに戻る</a>
+        
+        <header>
+            <h1>ROIC計算仕様書</h1>
+        </header>
+        
+        <div class="content">
+            <h2>1. ROIC計算式の定義</h2>
+            
+            <h3>1.1 基本計算式</h3>
+            <div class="formula-box">
+                ROIC = 投下資本回転率 × 営業利益率
+            </div>
+            
+            <h3>1.2 構成要素の詳細</h3>
+            
+            <h4>1.2.1 投下資本回転率</h4>
+            <div class="formula-box">
+                投下資本回転率 = 売上高 ÷ 投下資本<br>
+                投下資本 = 売上債権 + 棚卸資産 + 仕入債務 + 固定資産
+            </div>
+            
+            <h4>1.2.2 営業利益率</h4>
+            <div class="formula-box">
+                営業利益率 = 営業利益 ÷ 売上高
+            </div>
+            
+            <h2>2. 比較表での表示形式</h2>
+            
+            <h3>2.1 ROIC分解式</h3>
+            <div class="formula-box">
+                ROIC = 営業利益率（粗利率 - 販管費率）× 資本回転率（運転資本回転率 - 固定資産回転率）
+            </div>
+            
+            <h3>2.2 各指標の計算式</h3>
+            
+            <h4>2.2.1 営業利益率の分解</h4>
+            <ul>
+                <li><strong>粗利率</strong> = 売上総利益 ÷ 売上高</li>
+                <li><strong>販管費率</strong> = 販売費及び一般管理費 ÷ 売上高</li>
+                <li><strong>営業利益率</strong> = 粗利率 - 販管費率</li>
+            </ul>
+            
+            <h4>2.2.2 資本回転率の分解</h4>
+            <ul>
+                <li><strong>運転資本回転率</strong> = 売上高 ÷ 運転資本
+                    <ul>
+                        <li>運転資本 = 売上債権 + 棚卸資産 - 仕入債務</li>
+                    </ul>
+                </li>
+                <li><strong>固定資産回転率</strong> = 売上高 ÷ 固定資産</li>
+            </ul>
+            
+            <h2>3. 財務データ項目の定義</h2>
+            
+            <h3>3.1 貸借対照表（B/S）項目</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>項目名</th>
+                        <th>EDINETタグ名（参考）</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>売上債権</td>
+                        <td>TradeNotesAndAccountsReceivable</td>
+                        <td>受取手形及び売掛金</td>
+                    </tr>
+                    <tr>
+                        <td>棚卸資産</td>
+                        <td>Inventories</td>
+                        <td>商品及び製品、仕掛品、原材料及び貯蔵品の合計</td>
+                    </tr>
+                    <tr>
+                        <td>仕入債務</td>
+                        <td>TradeNotesAndAccountsPayable</td>
+                        <td>支払手形及び買掛金</td>
+                    </tr>
+                    <tr>
+                        <td>固定資産</td>
+                        <td>PropertyPlantAndEquipment</td>
+                        <td>有形固定資産の合計</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>3.2 損益計算書（P/L）項目</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>項目名</th>
+                        <th>EDINETタグ名（参考）</th>
+                        <th>説明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>売上高</td>
+                        <td>NetSales</td>
+                        <td>営業収益、売上高</td>
+                    </tr>
+                    <tr>
+                        <td>売上総利益</td>
+                        <td>GrossProfit</td>
+                        <td>売上高 - 売上原価</td>
+                    </tr>
+                    <tr>
+                        <td>販売費及び一般管理費</td>
+                        <td>SellingGeneralAndAdministrativeExpenses</td>
+                        <td>販管費の合計</td>
+                    </tr>
+                    <tr>
+                        <td>営業利益</td>
+                        <td>OperatingIncome</td>
+                        <td>売上総利益 - 販管費</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h2>4. 計算例</h2>
+            
+            <h3>4.1 サンプル企業データ</h3>
+            <div class="calculation-example">
+                <pre><code>売上高: 1,000億円
+営業利益: 100億円
+売上債権: 150億円
+棚卸資産: 80億円
+仕入債務: 120億円
+固定資産: 200億円
+売上総利益: 300億円
+販管費: 200億円</code></pre>
+            </div>
+            
+            <h3>4.2 計算過程</h3>
+            <ol>
+                <li><strong>投下資本</strong> = 150 + 80 + 120 + 200 = 550億円</li>
+                <li><strong>投下資本回転率</strong> = 1,000 ÷ 550 = 1.82回</li>
+                <li><strong>営業利益率</strong> = 100 ÷ 1,000 = 10%</li>
+                <li><strong>ROIC</strong> = 1.82 × 10% = 18.2%</li>
+            </ol>
+            
+            <h3>4.3 比較表での表示</h3>
+            <ul>
+                <li><strong>粗利率</strong> = 300 ÷ 1,000 = 30%</li>
+                <li><strong>販管費率</strong> = 200 ÷ 1,000 = 20%</li>
+                <li><strong>営業利益率</strong> = 30% - 20% = 10%</li>
+                <li><strong>運転資本</strong> = 150 + 80 - 120 = 110億円</li>
+                <li><strong>運転資本回転率</strong> = 1,000 ÷ 110 = 9.09回</li>
+                <li><strong>固定資産回転率</strong> = 1,000 ÷ 200 = 5.00回</li>
+            </ul>
+            
+            <h2>5. 実装上の注意点</h2>
+            
+            <h3>5.1 データ取得時の考慮事項</h3>
+            <ul>
+                <li>連結財務諸表を優先的に使用</li>
+                <li>会計基準の違い（日本基準、IFRS）に注意</li>
+                <li>決算期の違いを考慮した比較</li>
+            </ul>
+            
+            <h3>5.2 エラーハンドリング</h3>
+            <ul>
+                <li>ゼロ除算の回避</li>
+                <li>データ欠損時の処理</li>
+                <li>異常値の検出とアラート</li>
+            </ul>
+            
+            <h3>5.3 表示上の工夫</h3>
+            <ul>
+                <li>パーセント表示は小数点第1位まで</li>
+                <li>金額は億円単位で表示</li>
+                <li>マイナス値は赤字表示</li>
+                <li>前年比較機能の実装</li>
+            </ul>
+            
+            <div class="note-box">
+                <strong>注意:</strong> ROICの計算においては、企業の業種特性や会計方針の違いを考慮する必要があります。
+                単純な数値比較だけでなく、背景にある事業特性を理解した上で分析を行うことが重要です。
+            </div>
+        </div>
+    </div>
+</body>
+</html>

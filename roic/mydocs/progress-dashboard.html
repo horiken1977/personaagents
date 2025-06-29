@@ -176,12 +176,26 @@
             font-weight: 600;
             margin-bottom: 8px;
             font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .task-description {
             font-size: 14px;
             color: #666;
             line-height: 1.5;
+        }
+        
+        .doc-link {
+            text-decoration: none;
+            font-size: 18px;
+            transition: transform 0.2s ease;
+            display: inline-block;
+        }
+        
+        .doc-link:hover {
+            transform: scale(1.2);
         }
         
         .priority-badge {
@@ -248,15 +262,15 @@
                 <div class="stat-label">総タスク数</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">0</div>
+                <div class="stat-number">1</div>
                 <div class="stat-label">完了タスク</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">8</div>
+                <div class="stat-number">7</div>
                 <div class="stat-label">未完了タスク</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">0%</div>
+                <div class="stat-number">13%</div>
                 <div class="stat-label">完了率</div>
             </div>
         </div>
@@ -265,8 +279,8 @@
             <h2>全体進捗</h2>
             <div class="progress-bar-container">
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 0%">
-                        <span class="progress-text">0%</span>
+                    <div class="progress-fill" style="width: 13%">
+                        <span class="progress-text">13%</span>
                     </div>
                 </div>
             </div>
@@ -274,12 +288,15 @@
             <h3>タスク一覧</h3>
             <div class="task-list">
                 
-                    <div class="task-item pending">
-                        <div class="task-checkbox pending">
-                            ○
+                    <div class="task-item completed">
+                        <div class="task-checkbox completed">
+                            ✓
                         </div>
                         <div class="task-content">
-                            <div class="task-title">要件定義とアプリケーション仕様の策定</div>
+                            <div class="task-title">
+                                要件定義とアプリケーション仕様の策定
+                                <a href="requirements-definition.html" class="doc-link" title="要件定義書を表示">📄</a> <a href="roic-calculation-spec.html" class="doc-link" title="ROIC計算仕様書を表示">📄</a>
+                            </div>
                             <div class="task-description"></div>
                         </div>
                         <span class="priority-badge high">高</span>
@@ -290,7 +307,10 @@
                             ○
                         </div>
                         <div class="task-content">
-                            <div class="task-title">技術スタックとアーキテクチャの選定</div>
+                            <div class="task-title">
+                                技術スタックとアーキテクチャの選定
+                                
+                            </div>
                             <div class="task-description"></div>
                         </div>
                         <span class="priority-badge high">高</span>
@@ -301,7 +321,10 @@
                             ○
                         </div>
                         <div class="task-content">
-                            <div class="task-title">データソースとAPI設計の検討</div>
+                            <div class="task-title">
+                                データソースとAPI設計の検討
+                                
+                            </div>
                             <div class="task-description"></div>
                         </div>
                         <span class="priority-badge high">高</span>
@@ -312,7 +335,10 @@
                             ○
                         </div>
                         <div class="task-content">
-                            <div class="task-title">UI/UXデザインとワイヤーフレーム作成</div>
+                            <div class="task-title">
+                                UI/UXデザインとワイヤーフレーム作成
+                                
+                            </div>
                             <div class="task-description"></div>
                         </div>
                         <span class="priority-badge medium">中</span>
@@ -323,7 +349,10 @@
                             ○
                         </div>
                         <div class="task-content">
-                            <div class="task-title">データベース設計とスキーマ定義</div>
+                            <div class="task-title">
+                                データベース設計とスキーマ定義
+                                
+                            </div>
                             <div class="task-description"></div>
                         </div>
                         <span class="priority-badge medium">中</span>
@@ -334,7 +363,10 @@
                             ○
                         </div>
                         <div class="task-content">
-                            <div class="task-title">開発環境のセットアップとCI/CD構築</div>
+                            <div class="task-title">
+                                開発環境のセットアップとCI/CD構築
+                                
+                            </div>
                             <div class="task-description"></div>
                         </div>
                         <span class="priority-badge medium">中</span>
@@ -345,7 +377,10 @@
                             ○
                         </div>
                         <div class="task-content">
-                            <div class="task-title">セキュリティ要件とデータ保護対策の検討</div>
+                            <div class="task-title">
+                                セキュリティ要件とデータ保護対策の検討
+                                
+                            </div>
                             <div class="task-description"></div>
                         </div>
                         <span class="priority-badge medium">中</span>
@@ -356,7 +391,10 @@
                             ○
                         </div>
                         <div class="task-content">
-                            <div class="task-title">テスト計画とQA戦略の策定</div>
+                            <div class="task-title">
+                                テスト計画とQA戦略の策定
+                                
+                            </div>
                             <div class="task-description"></div>
                         </div>
                         <span class="priority-badge low">低</span>
@@ -366,7 +404,7 @@
         </div>
         
         <div class="last-updated">
-            最終更新: 2025/6/29 15:05:07
+            最終更新: 2025/6/29 17:50:24
         </div>
     </div>
     
@@ -393,7 +431,7 @@
             
             // プログレスバーのアニメーション
             setTimeout(() => {
-                progressFill.style.width = '0%';
+                progressFill.style.width = '13%';
             }, 500);
         });
         
