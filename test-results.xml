@@ -1,15 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-  <testsuite name="PersonaAgent\Tests\Unit\SecurityTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Unit/SecurityTest.php" tests="10" assertions="68" errors="0" warnings="0" failures="0" skipped="0" time="0.503904">
-    <testcase name="testCsrfProtection" class="PersonaAgent\Tests\Unit\SecurityTest" classname="PersonaAgent.Tests.Unit.SecurityTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Unit/SecurityTest.php" line="66" assertions="5" time="0.005081"/>
-    <testcase name="testSessionSecurity" class="PersonaAgent\Tests\Unit\SecurityTest" classname="PersonaAgent.Tests.Unit.SecurityTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Unit/SecurityTest.php" line="225" assertions="4" time="0.000987"/>
-    <testcase name="testXssProtection" class="PersonaAgent\Tests\Unit\SecurityTest" classname="PersonaAgent.Tests.Unit.SecurityTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Unit/SecurityTest.php" line="16" assertions="6" time="0.001406"/>
-    <testcase name="testSqlInjectionProtection" class="PersonaAgent\Tests\Unit\SecurityTest" classname="PersonaAgent.Tests.Unit.SecurityTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Unit/SecurityTest.php" line="44" assertions="4" time="0.001941"/>
-    <testcase name="testApiKeySecureStorage" class="PersonaAgent\Tests\Unit\SecurityTest" classname="PersonaAgent.Tests.Unit.SecurityTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Unit/SecurityTest.php" line="99" assertions="12" time="0.001097"/>
-    <testcase name="testFileUploadSecurity" class="PersonaAgent\Tests\Unit\SecurityTest" classname="PersonaAgent.Tests.Unit.SecurityTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Unit/SecurityTest.php" line="124" assertions="4" time="0.001018"/>
-    <testcase name="testInputValidationAndSanitization" class="PersonaAgent\Tests\Unit\SecurityTest" classname="PersonaAgent.Tests.Unit.SecurityTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Unit/SecurityTest.php" line="153" assertions="6" time="0.000852"/>
-    <testcase name="testRateLimitingAndBruteForceProtection" class="PersonaAgent\Tests\Unit\SecurityTest" classname="PersonaAgent.Tests.Unit.SecurityTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Unit/SecurityTest.php" line="181" assertions="4" time="0.001145"/>
-    <testcase name="testPasswordSecurity" class="PersonaAgent\Tests\Unit\SecurityTest" classname="PersonaAgent.Tests.Unit.SecurityTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Unit/SecurityTest.php" line="280" assertions="9" time="0.489458"/>
-    <testcase name="testHttpHeaderSecurity" class="PersonaAgent\Tests\Unit\SecurityTest" classname="PersonaAgent.Tests.Unit.SecurityTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Unit/SecurityTest.php" line="312" assertions="14" time="0.000919"/>
+  <testsuite name="PersonaAgent\Tests\Integration\EndToEndWorkflowTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php" tests="6" assertions="39" errors="0" warnings="0" failures="6" skipped="0" time="0.939732">
+    <testcase name="testCompletePersonaChatSaveFlow" class="PersonaAgent\Tests\Integration\EndToEndWorkflowTest" classname="PersonaAgent.Tests.Integration.EndToEndWorkflowTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php" line="29" assertions="5" time="0.004351">
+      <failure type="PHPUnit\Framework\ExpectationFailedException">PersonaAgent\Tests\Integration\EndToEndWorkflowTest::testCompletePersonaChatSaveFlow
+HTTP code should indicate success
+Failed asserting that 400 is less than 400.
+
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/IntegrationTestCase.php:219
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php:33</failure>
+    </testcase>
+    <testcase name="testLongSessionWorkflow" class="PersonaAgent\Tests\Integration\EndToEndWorkflowTest" classname="PersonaAgent.Tests.Integration.EndToEndWorkflowTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php" line="155" assertions="5" time="0.169754">
+      <failure type="PHPUnit\Framework\ExpectationFailedException">PersonaAgent\Tests\Integration\EndToEndWorkflowTest::testLongSessionWorkflow
+HTTP code should indicate success
+Failed asserting that 401 is less than 400.
+
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/IntegrationTestCase.php:219
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/IntegrationTestCase.php:232
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php:177</failure>
+    </testcase>
+    <testcase name="testConcurrentWorkflow" class="PersonaAgent\Tests\Integration\EndToEndWorkflowTest" classname="PersonaAgent.Tests.Integration.EndToEndWorkflowTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php" line="263" assertions="5" time="0.199753">
+      <failure type="PHPUnit\Framework\ExpectationFailedException">PersonaAgent\Tests\Integration\EndToEndWorkflowTest::testConcurrentWorkflow
+HTTP code should indicate success
+Failed asserting that 401 is less than 400.
+
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/IntegrationTestCase.php:219
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/IntegrationTestCase.php:232
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php:282</failure>
+    </testcase>
+    <testcase name="testSessionStateManagement" class="PersonaAgent\Tests\Integration\EndToEndWorkflowTest" classname="PersonaAgent.Tests.Integration.EndToEndWorkflowTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php" line="387" assertions="5" time="0.002640">
+      <failure type="PHPUnit\Framework\ExpectationFailedException">PersonaAgent\Tests\Integration\EndToEndWorkflowTest::testSessionStateManagement
+HTTP code should indicate success
+Failed asserting that 400 is less than 400.
+
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/IntegrationTestCase.php:219
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php:395</failure>
+    </testcase>
+    <testcase name="testErrorRecoveryWorkflow" class="PersonaAgent\Tests\Integration\EndToEndWorkflowTest" classname="PersonaAgent.Tests.Integration.EndToEndWorkflowTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php" line="228" assertions="14" time="0.391706">
+      <failure type="PHPUnit\Framework\ExpectationFailedException">PersonaAgent\Tests\Integration\EndToEndWorkflowTest::testErrorRecoveryWorkflow
+HTTP code should indicate success
+Failed asserting that 401 is less than 400.
+
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/IntegrationTestCase.php:219
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/IntegrationTestCase.php:232
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php:242</failure>
+    </testcase>
+    <testcase name="testMultiLLMProviderWorkflow" class="PersonaAgent\Tests\Integration\EndToEndWorkflowTest" classname="PersonaAgent.Tests.Integration.EndToEndWorkflowTest" file="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php" line="98" assertions="5" time="0.171528">
+      <failure type="PHPUnit\Framework\ExpectationFailedException">PersonaAgent\Tests\Integration\EndToEndWorkflowTest::testMultiLLMProviderWorkflow
+HTTP code should indicate success
+Failed asserting that 401 is less than 400.
+
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/IntegrationTestCase.php:219
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/IntegrationTestCase.php:232
+/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent/tests/Integration/EndToEndWorkflowTest.php:121</failure>
+    </testcase>
   </testsuite>
 </testsuites>
