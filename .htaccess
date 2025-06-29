@@ -1,0 +1,37 @@
+# 最小限の.htaccess設定
+# ディレクトリインデックスの設定
+DirectoryIndex index.php index.html
+
+# PHPエラー設定
+php_flag display_errors Off
+php_flag log_errors On
+
+# 基本的なセキュリティ
+Options -Indexes
+
+# .envファイルの保護
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# api_keys.jsonファイルの保護
+<Files "api_keys.json">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# URLリライト
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /persona/
+    
+    # API エンドポイント
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^api/(.*)$ api.php [QSA,L]
+</IfModule>
+
+# エラーページ
+ErrorDocument 404 /persona/error.php?code=404
+ErrorDocument 500 /persona/error.php?code=500

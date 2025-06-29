@@ -1,0 +1,44 @@
+{
+  "personas": [
+    {
+      "id": 999,
+      "name": "Test User Alpha",
+      "age": 35,
+      "segment": "テスト用プレミアム",
+      "location": "テスト州テスト市",
+      "household_income": "$85,000",
+      "family_status": "テスト家族、配偶者と子供1人",
+      "cooking_frequency": "週5日、テスト料理中心",
+      "health_concerns": "テスト健康管理、減塩志向",
+      "shopping_behavior": "テスト購買行動、品質重視",
+      "food_preferences": "テスト料理、バランス重視",
+      "technology_usage": "スマートフォン・PC上級者",
+      "condiment_usage": "醤油（通常）、味噌（テスト用）",
+      "price_sensitivity": "中（バランス重視）",
+      "key_motivations": "効率性、品質、家族の健康",
+      "pain_points": "時間不足、情報過多",
+      "japanese_food_exposure": "日本料理レストラン月1回利用",
+      "purchase_drivers": "利便性、品質保証、コストパフォーマンス"
+    },
+    {
+      "id": 998,
+      "name": "Test User Beta",
+      "age": 28,
+      "segment": "テスト用ミレニアル",
+      "location": "テスト県テスト区",
+      "household_income": "$65,000",
+      "family_status": "単身、ペット飼育",
+      "cooking_frequency": "週3日、簡単料理",
+      "health_concerns": "運動不足、栄養バランス",
+      "shopping_behavior": "オンライン中心、レビュー重視",
+      "food_preferences": "エスニック、インスタント",
+      "technology_usage": "SNS活用、アプリ多用",
+      "condiment_usage": "各種ソース、スパイス類",
+      "price_sensitivity": "高（コスト重視）",
+      "key_motivations": "時短、トレンド、SNS映え",
+      "pain_points": "予算制約、料理スキル不足",
+      "japanese_food_exposure": "アニメ・ゲーム経由、テイクアウト中心",
+      "purchase_drivers": "価格、口コミ、見た目"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+    "name": "personaagent/testing-suite",
+    "description": "PersonaAgent Unit Testing Suite",
+    "type": "project",
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "mockery/mockery": "^1.4",
+        "fakerphp/faker": "^1.20"
+    },
+    "autoload": {
+        "psr-4": {
+            "PersonaAgent\\": "src/",
+            "PersonaAgent\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test-coverage": "phpunit --coverage-html coverage-report",
+        "test-xml": "phpunit --log-junit test-results.xml"
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

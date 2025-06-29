@@ -1,0 +1,76 @@
+# 環境設定ファイル（機密情報含む）
+.env
+api_keys.json
+
+# ログファイル
+logs/
+*.log
+
+# テスト結果
+tests/results/
+
+# 一時ファイル
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# OS固有ファイル
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# エディタ設定
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# PHP関連
+composer.phar
+vendor/
+
+# バックアップファイル
+backup/
+*.backup
+*.backup.*
+
+# キャッシュファイル
+cache/
+*.cache
+
+# アップロードファイル
+uploads/
+temp/
+
+# データベース
+*.db
+*.sqlite
+*.sqlite3
+
+# 個人設定
+config.local.php
+settings.local.json
+
+# 既存の内容に追加
+
+# 開発環境固有
+/development/
+/docs/
+/tests/
+
+# OneDrive同期ファイル
+.OneSync*
+*.tmp
+
+# VS Code設定（プロジェクト固有のもの以外）
+.vscode/settings.json
+.vscode/launch.json
+
+# デプロイログ
+deploy.log
