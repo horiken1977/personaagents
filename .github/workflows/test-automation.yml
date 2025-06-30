@@ -133,8 +133,12 @@ jobs:
     - name: Install Dependencies
       run: |
         composer install --prefer-dist --no-progress --no-dev
-        cd tests/e2e
-        pip install -r requirements.txt
+        if [ -d "tests/e2e" ] && [ -f "tests/e2e/requirements.txt" ]; then
+          cd tests/e2e
+          pip install -r requirements.txt
+        else
+          echo "E2E test dependencies not available, skipping E2E setup"
+        fi
         
     - name: Run Comprehensive Test Suite
       run: |
