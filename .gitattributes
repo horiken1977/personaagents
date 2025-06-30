@@ -1,0 +1,19 @@
+# テストファイルの識別
+tests/** linguist-documentation
+*.Test.php linguist-documentation
+*test*.php linguist-documentation
+*test*.js linguist-documentation
+
+# セキュリティファイル
+*.pem binary
+*.key binary
+
+# 改行コード統一
+*.php text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
