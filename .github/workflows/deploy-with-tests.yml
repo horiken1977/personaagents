@@ -1,4 +1,4 @@
-name: Deploy to Sakura Internet
+name: Deploy with Tests
 
 on:
   push:
@@ -6,7 +6,37 @@ on:
   workflow_dispatch:
 
 jobs:
+  quick-tests:
+    name: Quick Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        
+    - name: Basic PHP Check
+      run: |
+        php -v
+        php -l api.php
+        php -l config.php
+        
+    - name: Security Check
+      run: |
+        echo "Checking for exposed secrets..."
+        # Check for hardcoded API keys
+        if grep -r "sk-" --include="*.php" --include="*.js" --exclude="api_keys.json" .; then
+          echo "⚠️ Potential hardcoded API keys found"
+          exit 1
+        fi
+        echo "✅ No exposed secrets found"
+
   deploy:
+    name: Deploy to Production
+    needs: quick-tests
     runs-on: ubuntu-latest
     
     steps:
@@ -33,12 +63,13 @@ jobs:
           --exclude='README.md' \
           --exclude='SETUP.md' \
           --exclude='SECURITY_INCIDENT_REPORT.md' \
-          --exclude='*.pem' \
-          --exclude='*.key' \
-          --exclude='roic/' \
+          --exclude='test-automation.yml' \
           --exclude='.DS_Store' \
           --exclude='*.tmp' \
           --exclude='*.bak' \
+          --exclude='*.pem' \
+          --exclude='*.key' \
+          --exclude='roic/' \
           -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5" \
           ./ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_REMOTE_PATH }}
         
