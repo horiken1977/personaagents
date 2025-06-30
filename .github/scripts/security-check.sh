@@ -9,6 +9,10 @@ echo "🔒 Running security checks..."
 EXCLUDE_DIRS="tests|vendor|node_modules|\.git"
 EXCLUDE_FILES="*Test.php|*test*.php|*test*.js|api_keys.json"
 
+# 正当なパターンを定義
+LEGITIMATE_PATTERNS="REQUEST_URI|HTTP_USER_AGENT|REMOTE_ADDR|REQUEST_METHOD|CONTENT_TYPE|SCRIPT_NAME|DOCUMENT_ROOT|HTTP_X_FORWARDED_FOR"
+LEGITIMATE_FILES="error_handler\.php|error\.php|debug\.php|api\.php|sheets_integration\.php"
+
 # 1. 実際のAPIキーパターンをチェック（テストファイル除外）
 echo "Checking for hardcoded API keys..."
 if find . -type f \( -name "*.php" -o -name "*.js" \) \
@@ -26,16 +30,18 @@ if find . -type f \( -name "*.php" -o -name "*.js" \) \
     exit 1
 fi
 
-# 2. 環境変数の漏洩チェック
+# 2. 環境変数の漏洩チェック（潜在的な機密情報漏洩）
 echo "Checking for exposed environment variables..."
 if find . -type f \( -name "*.php" -o -name "*.js" \) \
    ! -path "./tests/*" \
    ! -path "./vendor/*" \
    -exec grep -l "\$_ENV\|\$_SERVER\|process\.env" {} \; \
    | xargs -r grep -n "\$_ENV\[.*\]\|\$_SERVER\[.*\]\|process\.env\." \
-   | grep -v "//.*\|/\*.*\*/\|config\.php\|setup\.php" \
+   | grep -v "//.*\|/\*.*\*/" \
+   | grep -vE "$LEGITIMATE_FILES" \
+   | grep -vE "$LEGITIMATE_PATTERNS" \
    | grep . ; then
-    echo "ℹ️ Environment variable usage found (review for sensitive data)"
+    echo "ℹ️ Potentially sensitive environment variable usage found (review manually)"
 fi
 
 # 3. SQLインジェクション脆弱性チェック
@@ -45,7 +51,7 @@ if find . -type f -name "*.php" \
    ! -path "./vendor/*" \
    -exec grep -l "SELECT\|INSERT\|UPDATE\|DELETE" {} \; \
    | xargs -r grep -n "SELECT.*\$\|INSERT.*\$\|UPDATE.*\$\|DELETE.*\$" \
-   | grep -v "//.*\|/\*.*\*/" \
+   | grep -v "//.*\|/\*.*\*/\|CURLOPT_CUSTOMREQUEST\|HTTP method\|case.*DELETE" \
    | grep . ; then
     echo "⚠️ Potential SQL injection patterns found"
     exit 1
