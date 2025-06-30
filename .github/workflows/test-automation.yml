@@ -44,37 +44,52 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Check E2E Test Availability
+      id: check_e2e
+      run: |
+        if [ -d "tests/e2e" ] && [ -f "tests/e2e/requirements.txt" ]; then
+          echo "e2e_available=true" >> $GITHUB_OUTPUT
+        else
+          echo "e2e_available=false" >> $GITHUB_OUTPUT
+          echo "E2E tests not available - tests directory excluded from deployment"
+        fi
+    
     - name: Setup PHP
+      if: steps.check_e2e.outputs.e2e_available == 'true'
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.1'
         
     - name: Setup Python
+      if: steps.check_e2e.outputs.e2e_available == 'true'
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
         
     - name: Install E2E Test Dependencies
+      if: steps.check_e2e.outputs.e2e_available == 'true'
       run: |
         cd tests/e2e
         pip install -r requirements.txt
         
     - name: Start PHP Server
+      if: steps.check_e2e.outputs.e2e_available == 'true'
       run: |
         php -S localhost:8000 &
         sleep 3
         
     - name: Run E2E Quick Tests
+      if: steps.check_e2e.outputs.e2e_available == 'true'
       run: |
-        if [ -d "tests/e2e" ]; then
-          cd tests/e2e
-          mkdir -p logs
-          python3 run_quick_tests.py || true
-        else
-          echo "E2E tests directory not found, skipping E2E tests"
-          mkdir -p tests/e2e/logs
-          echo "E2E tests skipped - directory not available" > tests/e2e/logs/skipped.log
-        fi
+        cd tests/e2e
+        mkdir -p logs
+        python3 run_quick_tests.py || true
+        
+    - name: Create E2E Skip Log
+      if: steps.check_e2e.outputs.e2e_available == 'false'
+      run: |
+        mkdir -p tests/e2e/logs
+        echo "E2E tests skipped - tests directory not available in deployment" > tests/e2e/logs/skipped.log
         
     - name: Upload E2E Test Results
       uses: actions/upload-artifact@v4
@@ -92,33 +107,9 @@ jobs:
     
     - name: Run Security Analysis
       run: |
-        # Basic security checks
-        echo "Running security checks..."
-        
-        # Check for hardcoded API keys (excluding test files and placeholders)
-        if grep -r "sk-[a-zA-Z0-9]" \
-          --include="*.php" \
-          --include="*.js" \
-          --exclude="api_keys.json" \
-          --exclude="*Test.php" \
-          --exclude="*test*.php" \
-          --exclude="*test*.js" \
-          . | grep -v "placeholder\|sk-\.\.\.\|sk-ant-\.\.\." | grep -v "tests/"; then
-          echo "⚠️ Potential hardcoded API keys found"
-          exit 1
-        fi
-        
-        # Check for SQL injection patterns (excluding test files)
-        if grep -r "SELECT.*\$\|INSERT.*\$\|UPDATE.*\$\|DELETE.*\$" \
-          --include="*.php" \
-          --exclude="*Test.php" \
-          --exclude="*test*.php" \
-          . | grep -v "tests/"; then
-          echo "⚠️ Potential SQL injection patterns found"
-          exit 1
-        fi
-        
-        echo "✅ Basic security checks passed"
+        # Use improved security check script
+        chmod +x .github/scripts/security-check.sh
+        .github/scripts/security-check.sh
         
   comprehensive-test:
     name: Comprehensive Test Suite
