@@ -1,6 +1,21 @@
-# 環境設定ファイル（機密情報含む）
+# セキュリティ関連ファイル（機密情報含む）
 .env
+.env.*
 api_keys.json
+
+# AWS認証情報・秘密鍵
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+.aws/
+aws-*
+*credentials*
+*secret*
+*private*
+roic/
 
 # ログファイル
 logs/
