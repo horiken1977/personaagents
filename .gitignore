@@ -61,7 +61,7 @@ settings.local.json
 
 # 開発環境固有
 /development/
-/docs/
+# /docs/ - 設計書は含める
 /tests/
 
 # OneDrive同期ファイル
