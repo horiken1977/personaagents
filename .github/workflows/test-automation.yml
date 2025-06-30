@@ -1,0 +1,137 @@
+name: Automated Testing Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  php-tests:
+    name: PHP Unit & Integration Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: mbstring, xml, ctype, json, tokenizer, curl
+        
+    - name: Install Composer dependencies
+      run: composer install --prefer-dist --no-progress --no-dev
+      
+    - name: Run PHP Test Suite
+      run: |
+        php tests/run_all_tests.php
+        
+    - name: Upload PHP Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: php-test-results
+        path: tests/results/
+        
+  e2e-tests:
+    name: E2E Quick Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install E2E Test Dependencies
+      run: |
+        cd tests/e2e
+        pip install -r requirements.txt
+        
+    - name: Start PHP Server
+      run: |
+        php -S localhost:8000 &
+        sleep 3
+        
+    - name: Run E2E Quick Tests
+      run: |
+        cd tests/e2e
+        python3 run_quick_tests.py
+        
+    - name: Upload E2E Test Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: e2e-test-results
+        path: tests/e2e/logs/
+        
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run Security Analysis
+      run: |
+        # Basic security checks
+        echo "Running security checks..."
+        
+        # Check for hardcoded API keys (should be in api_keys.json)
+        if grep -r "sk-" --include="*.php" --include="*.js" --exclude="api_keys.json" .; then
+          echo "⚠️ Potential hardcoded API keys found"
+          exit 1
+        fi
+        
+        # Check for SQL injection patterns
+        if grep -r "SELECT.*\$\|INSERT.*\$\|UPDATE.*\$\|DELETE.*\$" --include="*.php" .; then
+          echo "⚠️ Potential SQL injection patterns found"
+          exit 1
+        fi
+        
+        echo "✅ Basic security checks passed"
+        
+  comprehensive-test:
+    name: Comprehensive Test Suite
+    runs-on: ubuntu-latest
+    needs: [php-tests, e2e-tests]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install Dependencies
+      run: |
+        composer install --prefer-dist --no-progress --no-dev
+        cd tests/e2e
+        pip install -r requirements.txt
+        
+    - name: Run Comprehensive Test Suite
+      run: |
+        chmod +x tests/run_test_suite.sh
+        tests/run_test_suite.sh
+        
+    - name: Upload Comprehensive Results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: comprehensive-test-results
+        path: tests/results/

@@ -269,6 +269,8 @@ class TestRunner {
     private function generateHTMLTemplate($summary, $timestamp) {
         $statusClass = $summary['failed_tests'] === 0 ? 'success' : 'warning';
         $statusIcon = $summary['failed_tests'] === 0 ? '✅' : '⚠️';
+        $successRate = number_format($summary['success_rate'], 1);
+        $executionTime = number_format($summary['execution_time'], 3);
         
         $html = <<<HTML
 <!DOCTYPE html>
@@ -322,11 +324,11 @@ class TestRunner {
                 <div class="metric-label">失敗テスト</div>
             </div>
             <div class="metric">
-                <div class="metric-value {$statusClass}">{$summary['success_rate']:.1f}%</div>
+                <div class="metric-value {$statusClass}">{$successRate}%</div>
                 <div class="metric-label">成功率</div>
             </div>
             <div class="metric">
-                <div class="metric-value">{$summary['execution_time']:.3f}s</div>
+                <div class="metric-value">{$executionTime}s</div>
                 <div class="metric-label">実行時間</div>
             </div>
         </div>
@@ -339,6 +341,7 @@ HTML;
             $suiteStatus = $result['success'] ? 'success' : 'failed';
             $statusBadge = $result['success'] ? 'status-success' : 'status-failed';
             $statusText = $result['success'] ? '成功' : '失敗';
+            $executionTimeFormatted = number_format($result['execution_time'], 3);
             
             $html .= <<<HTML
             <div class="test-suite">
@@ -347,14 +350,15 @@ HTML;
                     <div class="status-badge {$statusBadge}">{$statusText}</div>
                 </div>
                 <div class="suite-stats">
-                    実行時間: {$result['execution_time']:.3f}秒 | 
+                    実行時間: {$executionTimeFormatted}秒 | 
                     テスト数: {$result['stats']['total_tests']} | 
                     成功: {$result['stats']['passed_tests']} | 
                     失敗: {$result['stats']['failed_tests']}
 HTML;
             
             if ($result['stats']['total_tests'] > 0) {
-                $html .= " | 成功率: {$result['stats']['success_rate']:.1f}%";
+                $successRateFormatted = number_format($result['stats']['success_rate'], 1);
+                $html .= " | 成功率: {$successRateFormatted}%";
             }
             
             $html .= "</div>";
