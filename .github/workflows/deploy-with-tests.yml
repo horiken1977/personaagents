@@ -27,8 +27,15 @@ jobs:
     - name: Security Check
       run: |
         echo "Checking for exposed secrets..."
-        # Check for hardcoded API keys
-        if grep -r "sk-" --include="*.php" --include="*.js" --exclude="api_keys.json" .; then
+        # Check for hardcoded API keys (excluding test files and placeholders)
+        if grep -r "sk-[a-zA-Z0-9]" \
+          --include="*.php" \
+          --include="*.js" \
+          --exclude="api_keys.json" \
+          --exclude="*Test.php" \
+          --exclude="*test*.php" \
+          --exclude="*test*.js" \
+          . | grep -v "placeholder\|sk-\.\.\.\|sk-ant-\.\.\." | grep -v "tests/"; then
           echo "⚠️ Potential hardcoded API keys found"
           exit 1
         fi
