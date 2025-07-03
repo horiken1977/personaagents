@@ -19,12 +19,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 try {
     $provider = $_GET['provider'] ?? '';
     
+    // デバッグログ
+    error_log("API Check: Provider = '$provider'");
+    
     if (empty($provider)) {
         throw new Exception('プロバイダーが指定されていません');
     }
     
     // APIキーの存在確認
     $apiKey = getApiKey($provider);
+    
+    // デバッグログ
+    error_log("API Check: APIKey found = " . (!empty($apiKey) ? 'YES' : 'NO'));
+    if ($apiKey) {
+        error_log("API Check: APIKey prefix = " . substr($apiKey, 0, 10));
+    }
     
     if (empty($apiKey)) {
         echo json_encode([
@@ -39,13 +48,15 @@ try {
     $isValidFormat = false;
     switch ($provider) {
         case 'openai':
-            $isValidFormat = preg_match('/^sk-[a-zA-Z0-9]{20,}/', $apiKey);
+            // OpenAIの新旧両方の形式をサポート
+            $isValidFormat = preg_match('/^sk-(proj-)?[a-zA-Z0-9_-]{20,}/', $apiKey);
             break;
         case 'anthropic':
-            $isValidFormat = preg_match('/^sk-ant-[a-zA-Z0-9]{20,}/', $apiKey);
+        case 'claude':
+            $isValidFormat = preg_match('/^sk-ant-[a-zA-Z0-9_-]{20,}/', $apiKey);
             break;
         case 'gemini':
-            $isValidFormat = preg_match('/^AIza[a-zA-Z0-9_-]{35}$/', $apiKey);
+            $isValidFormat = preg_match('/^AIza[a-zA-Z0-9_-]{20,}$/', $apiKey);
             break;
         default:
             throw new Exception('サポートされていないプロバイダーです');
