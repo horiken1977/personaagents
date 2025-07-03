@@ -33,6 +33,7 @@ try {
     error_log("API Check: APIKey found = " . (!empty($apiKey) ? 'YES' : 'NO'));
     if ($apiKey) {
         error_log("API Check: APIKey prefix = " . substr($apiKey, 0, 10));
+        error_log("API Check: APIKey length = " . strlen($apiKey));
     }
     
     if (empty($apiKey)) {
@@ -48,19 +49,23 @@ try {
     $isValidFormat = false;
     switch ($provider) {
         case 'openai':
-            // OpenAIの新旧両方の形式をサポート
-            $isValidFormat = preg_match('/^sk-(proj-)?[a-zA-Z0-9_-]{20,}/', $apiKey);
+            // OpenAIの新旧両方の形式をサポート（debug_api.phpと同じパターン）
+            $isValidFormat = preg_match('/^sk-proj-[a-zA-Z0-9_-]{20,}/', $apiKey) || 
+                           preg_match('/^sk-[a-zA-Z0-9]{20,}/', $apiKey);
             break;
         case 'anthropic':
         case 'claude':
             $isValidFormat = preg_match('/^sk-ant-[a-zA-Z0-9_-]{20,}/', $apiKey);
             break;
         case 'gemini':
-            $isValidFormat = preg_match('/^AIza[a-zA-Z0-9_-]{20,}$/', $apiKey);
+            $isValidFormat = preg_match('/^AIza[a-zA-Z0-9_-]{20,}/', $apiKey);
             break;
         default:
             throw new Exception('サポートされていないプロバイダーです');
     }
+    
+    // デバッグログ
+    error_log("API Check: Format validation result = " . ($isValidFormat ? 'PASS' : 'FAIL'));
     
     if (!$isValidFormat) {
         echo json_encode([
