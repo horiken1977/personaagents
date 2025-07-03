@@ -119,16 +119,8 @@ function startChat() {
     }
 
     const llmProvider = document.getElementById('llmProvider').value;
-    const apiKey = document.getElementById('apiKey').value;
 
-    if (!apiKey.trim()) {
-        showErrorMessage('APIキーを入力してください。');
-        return;
-    }
-
-    // 設定を保存
-    saveSettings(llmProvider, apiKey);
-
+    // APIキーはサーバー側で管理されているため、チェック不要
     // チャット画面に遷移
     const params = new URLSearchParams({
         personaId: selectedPersona.id,
@@ -440,5 +432,79 @@ style.textContent = `
     .selected-persona-preview strong {
         color: #2c3e50;
     }
+    .api-status {
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+        font-weight: 500;
+    }
+    .api-status.checking {
+        background: #f8f9fa;
+        color: #6c757d;
+    }
+    .api-status.available {
+        background: #d4edda;
+        color: #155724;
+    }
+    .api-status.unavailable {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    .api-status.error {
+        background: #fff3cd;
+        color: #856404;
+    }
 `;
 document.head.appendChild(style);
+
+// APIキー状態確認関数
+function checkApiKeyStatus() {
+    const provider = document.getElementById('llmProvider').value;
+    const statusDiv = document.getElementById('apiStatusCheck');
+    
+    if (!statusDiv) return;
+    
+    statusDiv.innerHTML = '<span class="api-status checking">APIの状態を確認中...</span>';
+    
+    fetch(`api_check.php?provider=${provider}`)
+        .then(response => response.json())
+        .then(data => {
+            let statusClass = '';
+            let statusText = '';
+            
+            switch (data.status) {
+                case 'available':
+                    statusClass = 'available';
+                    statusText = '✅ ' + data.message;
+                    break;
+                case 'unavailable':
+                    statusClass = 'unavailable';
+                    statusText = '❌ ' + data.message;
+                    break;
+                case 'error':
+                    statusClass = 'error';
+                    statusText = '⚠️ ' + data.message;
+                    break;
+                default:
+                    statusClass = 'error';
+                    statusText = '⚠️ 不明なエラーが発生しました';
+            }
+            
+            statusDiv.innerHTML = `<span class="api-status ${statusClass}">${statusText}</span>`;
+        })
+        .catch(error => {
+            console.error('APIキー状態確認エラー:', error);
+            statusDiv.innerHTML = '<span class="api-status error">⚠️ APIキー状態の確認に失敗しました</span>';
+        });
+}
+
+// ページ読み込み時の初期化
+document.addEventListener('DOMContentLoaded', function() {
+    loadPersonas();
+    checkApiKeyStatus();
+    
+    // LLMプロバイダー変更時にAPIキー状態を再チェック
+    document.getElementById('llmProvider').addEventListener('change', function() {
+        checkApiKeyStatus();
+    });
+});

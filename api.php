@@ -5,6 +5,10 @@
  */
 
 require_once 'config.php';
+require_once 'security_headers.php';
+
+// セキュリティヘッダーの設定
+initializeSecurity();
 
 class LLMAPIHub {
     private $providers;

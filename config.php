@@ -206,6 +206,7 @@ function getApiKey($provider) {
                         }
                         break;
                     case 'claude':
+                    case 'anthropic':
                         if (isset($keys['anthropic']) && !empty(trim($keys['anthropic']))) {
                             return trim($keys['anthropic']);
                         }
@@ -226,6 +227,7 @@ function getApiKey($provider) {
             $key = getenv('OPENAI_API_KEY');
             return $key ? trim($key) : null;
         case 'claude':
+        case 'anthropic':
             $key = getenv('ANTHROPIC_API_KEY');
             return $key ? trim($key) : null;
         case 'gemini':

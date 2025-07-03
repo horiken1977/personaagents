@@ -34,14 +34,14 @@
                 </div>
                 
                 <div class="settings-group">
-                    <label for="apiKey">APIキー:</label>
-                    <div class="api-key-group">
-                        <input type="password" id="apiKey" class="settings-input" placeholder="APIキーを入力してください">
-                        <button id="testApiBtn" class="btn btn-test" disabled>疎通確認</button>
-                        <button id="saveApiBtn" class="btn btn-save" disabled>保存</button>
+                    <div class="api-status-info">
+                        <h3>🔐 APIキー設定</h3>
+                        <p>このアプリケーションのAPIキーは管理者によって安全に設定されています。<br>
+                        ユーザーがAPIキーを入力する必要はありません。</p>
+                        <div id="apiStatusCheck" class="api-status-indicator">
+                            <span class="status-loading">APIの状態を確認中...</span>
+                        </div>
                     </div>
-                    <div id="apiTestResult" class="api-test-result"></div>
-                    <small class="settings-help">APIキーは安全にブラウザに保存されます（保存ボタンクリック時）</small>
                 </div>
             </section>
         </main>
