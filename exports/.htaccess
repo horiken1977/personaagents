@@ -1,0 +1,13 @@
+# エクスポートファイルへの直接アクセスを許可
+# ただし、ディレクトリリスト表示は禁止
+Options -Indexes
+
+# CSVファイルのMIMEタイプ設定
+<Files "*.csv">
+    ForceType application/octet-stream
+    Header set Content-Disposition "attachment"
+</Files>
+
+# セキュリティヘッダー
+Header always set X-Content-Type-Options nosniff
+Header always set X-Frame-Options DENY

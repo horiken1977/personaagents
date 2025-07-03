@@ -23,17 +23,10 @@ class LLMAPIHub {
      */
     public function handleRequest() {
         try {
-            // GETリクエストの処理（Google設定の取得など）
+            // GETリクエストの処理
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $action = $_GET['action'] ?? '';
-                if ($action === 'get_google_config') {
-                    $config = GOOGLE_API_CONFIG;
-                    sendJsonResponse([
-                        'client_id' => $config['client_id'] ?? '',
-                        'spreadsheet_id' => getSpreadsheetId()
-                    ]);
-                    return;
-                } elseif ($action === 'get_api_keys') {
+                if ($action === 'get_api_keys') {
                     // APIキーの存在確認（キー自体は返さない）
                     $hasKeys = [
                         'openai' => !empty(getApiKey('openai')),
@@ -64,19 +57,7 @@ class LLMAPIHub {
                 throw new Exception('Invalid JSON in request body', 400);
             }
             
-            // スプレッドシートID保存の特別処理
-            if (isset($input['action']) && $input['action'] === 'save_spreadsheet_id') {
-                if (!isset($input['spreadsheet_id'])) {
-                    throw new Exception('Spreadsheet ID is required', 400);
-                }
-                
-                $success = saveSpreadsheetId($input['spreadsheet_id']);
-                sendJsonResponse([
-                    'success' => $success,
-                    'message' => $success ? 'Spreadsheet ID saved' : 'Failed to save spreadsheet ID'
-                ]);
-                return;
-            }
+            // Google Spreadsheet関連処理は削除済み
             
             // 入力値の検証
             $this->validateRequest($input);

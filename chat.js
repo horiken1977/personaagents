@@ -1,8 +1,6 @@
 // チャット画面の状態管理
 let currentPersona = null;
 let chatHistory = [];
-let isAuthenticated = false;
-let gapi = null;
 
 // DOM読み込み完了時の初期化
 document.addEventListener('DOMContentLoaded', function() {
@@ -12,19 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
     loadChatHistory();
     checkApiKeysAndHideInputs();
     
-    // Google Identity Services (GIS) マネージャーを使用
-    if (window.googleGISManager) {
-        console.log('Starting Google GIS initialization...');
-        setTimeout(() => {
-            window.googleGISManager.init().catch(error => {
-                console.error('Google GIS initialization failed:', error);
-                disableGoogleFeatures();
-            });
-        }, 1000); // 1秒遅延で開始
-    } else {
-        console.log('Google GIS manager not available');
-        disableGoogleFeatures();
-    }
 });
 
 // チャット初期化
@@ -151,26 +136,13 @@ function initializeEventListeners() {
         }
     });
 
-    // Google Sheets保存関連
-    const saveToSheetsBtn = document.getElementById('saveToSheetsBtn');
-    const authenticateBtn = document.getElementById('authenticateBtn');
-    const saveNowBtn = document.getElementById('saveNowBtn');
-    const cancelSaveBtn = document.getElementById('cancelSaveBtn');
-
-    if (saveToSheetsBtn) {
-        saveToSheetsBtn.addEventListener('click', showSheetsModal);
-    }
-
-    if (authenticateBtn) {
-        authenticateBtn.addEventListener('click', authenticateGoogle);
-    }
-
-    if (saveNowBtn) {
-        saveNowBtn.addEventListener('click', saveToSheets);
-    }
-
-    if (cancelSaveBtn) {
-        cancelSaveBtn.addEventListener('click', closeSheetsModal);
+    // エクスポート機能
+    const exportToExcelBtn = document.getElementById('exportToExcelBtn');
+    if (exportToExcelBtn) {
+        exportToExcelBtn.addEventListener('click', () => {
+            const exportManager = new ExportManager();
+            exportManager.exportToCSV();
+        });
     }
 
     // 履歴管理
@@ -484,51 +456,81 @@ function exportChatHistory() {
 
 // Google API状態回復の試行（削除済み - 新しいマネージャーシステムを使用）
 
-// Google Client ID検証
-function validateGoogleClientId(clientId) {
-    if (!clientId || typeof clientId !== 'string') {
-        return { valid: false, error: 'Client IDが空または無効です' };
-    }
-    
-    // 基本的な形式チェック
-    const clientIdPattern = /^[0-9]+-[a-zA-Z0-9_]+\.apps\.googleusercontent\.com$/;
-    if (!clientIdPattern.test(clientId)) {
-        return { 
-            valid: false, 
-            error: 'Client IDの形式が正しくありません。正しい形式: xxxxx.apps.googleusercontent.com' 
-        };
-    }
-    
-    // 現在のドメインチェック
-    const currentDomain = window.location.hostname;
-    console.log('Current domain:', currentDomain);
-    
-    // リダイレクトURIの妥当性チェック（開発用の警告）
-    if (currentDomain === 'localhost' || currentDomain === '127.0.0.1') {
-        console.warn('Warning: Running on localhost. Make sure your Google OAuth Client ID includes localhost in authorized domains.');
-    } else if (!currentDomain.includes('sakura.ne.jp')) {
-        console.warn('Warning: Current domain may not be authorized in Google OAuth settings.');
-    }
-    
-    return { valid: true, error: null };
-}
+// ExportManagerクラス
+class ExportManager {
+    exportToCSV() {
+        if (chatHistory.length === 0) {
+            showErrorMessage('エクスポートする履歴がありません。');
+            return;
+        }
 
-// Google機能を無効化
-function disableGoogleFeatures() {
-    const saveToSheetsBtn = document.getElementById('saveToSheetsBtn');
-    if (saveToSheetsBtn) {
-        saveToSheetsBtn.style.display = 'none';
-    }
-    console.log('Google Sheets features disabled');
-}
+        try {
+            // CSVヘッダー
+            const headers = [
+                'タイムスタンプ',
+                'ペルソナ名',
+                'ペルソナID',
+                '質問',
+                '回答'
+            ];
 
-// Google機能を有効化
-function enableGoogleFeatures() {
-    const saveToSheetsBtn = document.getElementById('saveToSheetsBtn');
-    if (saveToSheetsBtn) {
-        saveToSheetsBtn.style.display = 'inline-block';
+            // CSVデータ作成
+            const csvData = [headers];
+            
+            chatHistory.forEach(item => {
+                const row = [
+                    new Date(item.timestamp).toLocaleString('ja-JP'),
+                    item.personaName || currentPersona?.name || '',
+                    item.personaId || currentPersona?.id || '',
+                    this.escapeCsvValue(item.question || ''),
+                    this.escapeCsvValue(item.answer || '')
+                ];
+                csvData.push(row);
+            });
+
+            // CSV文字列に変換
+            const csvString = csvData.map(row => row.join(',')).join('\n');
+            
+            // BOMを追加してUTF-8エンコーディングを明示
+            const bom = '\uFEFF';
+            const blob = new Blob([bom + csvString], {
+                type: 'text/csv;charset=utf-8'
+            });
+
+            // ダウンロード実行
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chat-history-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showSuccessMessage(`${chatHistory.length}件の履歴をCSV形式でエクスポートしました。`);
+
+        } catch (error) {
+            console.error('CSV エクスポート エラー:', error);
+            showErrorMessage('CSVエクスポートに失敗しました: ' + error.message);
+        }
     }
-    console.log('Google Sheets features enabled');
+
+    // CSV用の値をエスケープ
+    escapeCsvValue(value) {
+        if (value === null || value === undefined) {
+            return '';
+        }
+        
+        const stringValue = String(value);
+        
+        // ダブルクォート、カンマ、改行が含まれている場合はエスケープが必要
+        if (stringValue.includes('"') || stringValue.includes(',') || stringValue.includes('\n') || stringValue.includes('\r')) {
+            // ダブルクォートを二重にしてエスケープし、全体をダブルクォートで囲む
+            return '"' + stringValue.replace(/"/g, '""') + '"';
+        }
+        
+        return stringValue;
+    }
 }
 
 // Google API状態の詳細診断（削除済み - 新しいマネージャーシステムを使用）
@@ -574,324 +576,6 @@ async function checkApiKeysAndHideInputs() {
     }
 }
 
-// Google Sheets関連
-function showSheetsModal() {
-    const modal = document.getElementById('sheetsModal');
-    if (modal) {
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-function closeSheetsModal() {
-    const modal = document.getElementById('sheetsModal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-}
-
-async function authenticateGoogle() {
-    try {
-        showLoadingOverlay('Google認証中...');
-        
-        // Google Identity Services (GIS) マネージャーを使用
-        if (!window.googleGISManager) {
-            throw new Error('Google Identity Servicesが利用できません。ページを再読み込みしてください。');
-        }
-        
-        // 初期化が完了していない場合は初期化を実行
-        if (!window.googleGISManager.initialized) {
-            console.log('Google GIS not initialized, starting initialization...');
-            await window.googleGISManager.init();
-        }
-        
-        console.log('Starting Google Identity Services authentication...');
-        showLoadingOverlay('Googleアカウント認証中...');
-        
-        // GISを使用してアクセストークンを取得
-        const accessToken = await window.googleGISManager.requestAccessToken();
-        
-        console.log('Access token received successfully');
-        
-        // ユーザー情報を取得
-        const userInfo = await fetchGoogleUserInfo(accessToken);
-        
-        // 認証状態を更新
-        isAuthenticated = true;
-        window.googleAccessToken = accessToken; // トークンを保存
-        window.googleUserInfo = userInfo; // ユーザー情報を保存
-        updateAuthStatus(true);
-        
-        const saveBtn = document.getElementById('saveNowBtn');
-        if (saveBtn) saveBtn.disabled = false;
-        
-        showSuccessMessage('Google認証が完了しました。');
-
-    } catch (error) {
-        console.error('Google認証エラー:', error);
-        isAuthenticated = false;
-        updateAuthStatus(false);
-        showErrorMessage('Google認証に失敗しました: ' + error.message);
-    } finally {
-        hideLoadingOverlay();
-    }
-}
-
-async function saveToSheets() {
-    if (!isAuthenticated) {
-        showErrorMessage('先にGoogle認証を完了してください。');
-        return;
-    }
-
-    if (chatHistory.length === 0) {
-        showErrorMessage('保存する対話データがありません。');
-        return;
-    }
-
-    try {
-        showLoadingOverlay('Google Sheetsに保存中...');
-
-        // GISで取得したアクセストークンを使用
-        if (!window.googleAccessToken) {
-            throw new Error('有効なアクセストークンがありません。再度認証してください。');
-        }
-        
-        const accessToken = window.googleAccessToken;
-        const userInfo = window.googleUserInfo || { email: 'Unknown', name: 'Unknown User' };
-        const llmProvider = sessionStorage.getItem('llmProvider') || 'Unknown';
-
-        // 設定からスプレッドシートIDを取得
-        const configResponse = await fetch('/persona/api.php?action=get_google_config');
-        if (!configResponse.ok) {
-            throw new Error('スプレッドシート設定の取得に失敗しました。');
-        }
-        
-        const configData = await configResponse.json();
-        let spreadsheetId = configData.spreadsheet_id;
-        
-        // スプレッドシートIDが設定されていない場合は新規作成
-        if (!spreadsheetId) {
-            console.log('スプレッドシートIDが設定されていないため、新規作成します...');
-            
-            const createResponse = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    properties: {
-                        title: 'PersonaAgent対話履歴'
-                    },
-                    sheets: [{
-                        properties: {
-                            title: 'チャット履歴'
-                        }
-                    }]
-                })
-            });
-
-            if (!createResponse.ok) {
-                const errorData = await createResponse.json().catch(() => ({}));
-                throw new Error(`スプレッドシート作成に失敗: ${createResponse.status} - ${errorData.error?.message || createResponse.statusText}`);
-            }
-
-            const createResult = await createResponse.json();
-            spreadsheetId = createResult.spreadsheetId;
-            
-            // スプレッドシートIDを保存
-            await fetch('/persona/api.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    action: 'save_spreadsheet_id',
-                    spreadsheet_id: spreadsheetId
-                })
-            });
-            
-            console.log('新しいスプレッドシートを作成しました:', spreadsheetId);
-        }
-        
-        // 現在のデータ範囲を取得して最終行を特定
-        const rangeResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A:F`, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        });
-        
-        let nextRow = 2; // ヘッダーの次の行から開始
-        let existingData = [];
-        let hasHeaders = false;
-        
-        if (rangeResponse.ok) {
-            const rangeData = await rangeResponse.json();
-            if (rangeData.values && rangeData.values.length > 0) {
-                // 最初の行がヘッダーかどうかチェック
-                const firstRow = rangeData.values[0];
-                hasHeaders = firstRow.includes('タイムスタンプ') || firstRow.includes('Googleアカウント');
-                
-                if (hasHeaders) {
-                    existingData = rangeData.values.slice(1); // ヘッダーを除く既存データ
-                    nextRow = rangeData.values.length + 1; // 最終行の次の行
-                } else {
-                    existingData = rangeData.values; // 全てがデータ行
-                    nextRow = rangeData.values.length + 2; // ヘッダー分も考慮
-                }
-            }
-        }
-        
-        // ヘッダーが存在しない場合は追加
-        if (!hasHeaders) {
-            console.log('ヘッダーが存在しないため、追加します...');
-            const headers = ['タイムスタンプ', 'Googleアカウント', 'LLM名', 'ペルソナ名', '質問', '回答'];
-            await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A1:F1?valueInputOption=RAW`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    values: [headers]
-                })
-            });
-            
-            // 既存のデータがある場合は1行下にシフト
-            if (existingData.length > 0) {
-                await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A2:F${existingData.length + 1}?valueInputOption=RAW`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        values: existingData
-                    })
-                });
-                nextRow = existingData.length + 2;
-            } else {
-                nextRow = 2;
-            }
-        }
-        
-        // 既存データと比較して新しい対話のみを特定
-        const newRows = [];
-        
-        chatHistory.forEach(item => {
-            const rowData = [
-                new Date(item.timestamp).toLocaleString('ja-JP'),
-                userInfo.email,
-                llmProvider.toUpperCase(),
-                item.personaName || currentPersona?.name || '',
-                item.question || '',
-                item.answer || ''
-            ];
-            
-            // 既存データに同じタイムスタンプと質問の組み合わせがないかチェック
-            const isDuplicate = existingData.some(existingRow => 
-                existingRow[0] === rowData[0] && // タイムスタンプ
-                existingRow[4] === rowData[4]    // 質問
-            );
-            
-            if (!isDuplicate) {
-                newRows.push(rowData);
-            }
-        });
-        
-        if (newRows.length === 0) {
-            showSuccessMessage('新しいデータがないため、保存をスキップしました。');
-            closeSheetsModal();
-            return;
-        }
-
-        // 新しいデータを一括追加
-        const appendResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A${nextRow}:F${nextRow + newRows.length - 1}?valueInputOption=RAW`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                values: newRows
-            })
-        });
-
-        if (!appendResponse.ok) {
-            const errorData = await appendResponse.json().catch(() => ({}));
-            throw new Error(`データ追加に失敗: ${appendResponse.status} - ${errorData.error?.message || appendResponse.statusText}`);
-        }
-
-        showSuccessMessage(`${newRows.length}件の対話データをGoogle Sheetsに保存しました。`);
-        closeSheetsModal();
-        
-        // スプレッドシートを開くオプション
-        if (confirm('スプレッドシートを開いて確認しますか？')) {
-            window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`, '_blank');
-        }
-
-    } catch (error) {
-        console.error('Sheets保存エラー:', error);
-        
-        // トークンエラーの場合は再認証を促す
-        if (error.message.includes('401') || error.message.includes('unauthorized')) {
-            isAuthenticated = false;
-            window.googleAccessToken = null;
-            updateAuthStatus(false);
-            showErrorMessage('認証が期限切れです。再度Google認証を行ってください。');
-        } else {
-            showErrorMessage('Google Sheetsへの保存に失敗しました: ' + error.message);
-        }
-    } finally {
-        hideLoadingOverlay();
-    }
-}
-
-// Googleユーザー情報を取得
-async function fetchGoogleUserInfo(accessToken) {
-    try {
-        const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Failed to fetch user info: ${response.status}`);
-        }
-        
-        const userInfo = await response.json();
-        console.log('Google user info retrieved:', userInfo);
-        
-        return {
-            email: userInfo.email || '',
-            name: userInfo.name || '',
-            id: userInfo.id || ''
-        };
-    } catch (error) {
-        console.warn('Failed to fetch Google user info:', error);
-        return {
-            email: 'Unknown',
-            name: 'Unknown User',
-            id: 'unknown'
-        };
-    }
-}
-
-function updateAuthStatus(authenticated) {
-    const authStatus = document.getElementById('authStatus');
-    if (authStatus) {
-        if (authenticated) {
-            const userEmail = window.googleUserInfo ? window.googleUserInfo.email : '';
-            authStatus.textContent = userEmail ? `認証済み (${userEmail})` : '認証済み';
-            authStatus.classList.add('authenticated');
-        } else {
-            authStatus.textContent = '未認証';
-            authStatus.classList.remove('authenticated');
-        }
-    }
-}
 
 // ユーティリティ関数
 function truncateText(text, maxLength) {

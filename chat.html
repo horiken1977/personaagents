@@ -18,9 +18,9 @@
                 </div>
             </div>
             <div class="header-actions">
-                <button id="saveToSheetsBtn" class="btn btn-outline">
-                    <span class="icon">📊</span>
-                    Google Sheetsに保存
+                <button id="exportToExcelBtn" class="btn btn-outline">
+                    <span class="icon">📋</span>
+                    エクセル形式でエクスポート
                 </button>
                 <button id="backBtn" class="btn btn-outline">
                     <span class="icon">←</span>
@@ -87,32 +87,30 @@
         </div>
     </div>
 
-    <!-- Google Sheets連携モーダル -->
-    <div id="sheetsModal" class="modal">
+    <!-- エクスポート完了モーダル -->
+    <div id="exportModal" class="modal">
         <div class="modal-content">
-            <h3>Google Sheetsに保存</h3>
+            <h3>📋 エクスポート完了</h3>
             <div class="modal-body">
-                <p>最新の対話を設定されたGoogle Sheetsに保存します。Googleアカウントでログインしてください。</p>
-                <div class="sheets-info">
-                    <p><strong>保存される情報:</strong></p>
+                <div id="exportResult">
+                    <p>チャット履歴をエクセル形式でエクスポートしました。</p>
+                </div>
+                <div class="export-info">
+                    <p><strong>エクスポートされる情報:</strong></p>
                     <ul style="margin: 10px 0; padding-left: 20px; font-size: 14px;">
                         <li>タイムスタンプ</li>
-                        <li>Googleアカウント</li>
-                        <li>使用LLM名</li>
+                        <li>ユーザーID</li>
+                        <li>LLMプロバイダー</li>
                         <li>ペルソナ名</li>
                         <li>質問内容</li>
                         <li>回答内容</li>
                     </ul>
-                    <p style="font-size: 12px; color: #666;">※ スプレッドシートIDは設定画面で管理できます</p>
-                </div>
-                <div class="auth-status" id="authStatus">
-                    未認証
+                    <p style="font-size: 12px; color: #666;">※ 新しい対話がある場合のみエクスポートされます</p>
                 </div>
             </div>
             <div class="modal-actions">
-                <button id="authenticateBtn" class="btn btn-primary">Google認証</button>
-                <button id="saveNowBtn" class="btn btn-success" disabled>保存実行</button>
-                <button id="cancelSaveBtn" class="btn btn-secondary">キャンセル</button>
+                <button id="downloadFileBtn" class="btn btn-primary" disabled>ダウンロード</button>
+                <button id="closeExportBtn" class="btn btn-secondary">閉じる</button>
             </div>
         </div>
     </div>
@@ -124,177 +122,43 @@
     </div>
 
     <script>
-        // Google Identity Services (GIS) マネージャー
-        window.googleGISManager = {
-            loaded: false,
-            error: false,
-            initializing: false,
-            initialized: false,
-            clientId: null,
-            tokenClient: null,
-            initPromise: null,
+        // シンプルなエクスポート機能
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Export functionality initialized');
             
-            // 初期化ロック（重複防止）
-            init: async function() {
-                if (this.initPromise) {
-                    console.log('Google GIS initialization already in progress, waiting...');
-                    return this.initPromise;
-                }
-                
-                if (this.initialized) {
-                    console.log('Google GIS already initialized');
-                    return Promise.resolve();
-                }
-                
-                this.initPromise = this._performInit();
-                return this.initPromise;
-            },
-            
-            _performInit: async function() {
-                try {
-                    this.initializing = true;
-                    console.log('Starting Google Identity Services initialization...');
-                    
-                    // Google Identity Services が利用可能になるまで待機
-                    let gisWaitAttempts = 0;
-                    const maxGisWait = 20;
-                    
-                    while (gisWaitAttempts < maxGisWait) {
-                        if (window.google && window.google.accounts && window.google.accounts.oauth2) {
-                            console.log('Google Identity Services ready');
-                            break;
-                        }
-                        
-                        gisWaitAttempts++;
-                        console.log(`Waiting for Google Identity Services... (${gisWaitAttempts}/${maxGisWait})`);
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    }
-                    
-                    if (gisWaitAttempts >= maxGisWait) {
-                        throw new Error('Google Identity Services not available');
-                    }
-                    
-                    // 設定取得
-                    const response = await fetch('/persona/api.php?action=get_google_config');
-                    if (!response.ok) {
-                        throw new Error('Failed to get Google config');
-                    }
-                    
-                    const configData = await response.json();
-                    if (!configData || !configData.client_id) {
-                        throw new Error('Google Client ID not configured');
-                    }
-                    
-                    this.clientId = configData.client_id;
-                    console.log('Initializing Google Identity Services with Client ID:', this.clientId.substring(0, 20) + '...');
-                    
-                    // OAuth2 Token Client を初期化
-                    this.tokenClient = window.google.accounts.oauth2.initTokenClient({
-                        client_id: this.clientId,
-                        scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
-                        callback: (response) => {
-                            if (response.error) {
-                                console.error('Token request failed:', response.error);
-                                this._handleTokenError(response.error);
-                            } else {
-                                console.log('Token received successfully');
-                                this._handleTokenSuccess(response);
-                            }
-                        }
-                    });
-                    
-                    this.initialized = true;
-                    console.log('Google Identity Services initialized successfully');
-                    
-                    // Google Sheetsボタンを有効化
-                    if (window.enableGoogleFeatures) {
-                        window.enableGoogleFeatures();
-                    }
-                    
-                } catch (error) {
-                    this.error = true;
-                    console.error('Google Identity Services initialization failed:', error);
-                    
-                    // Google Sheetsボタンを無効化
-                    if (window.disableGoogleFeatures) {
-                        window.disableGoogleFeatures();
-                    }
-                    
-                    throw error;
-                } finally {
-                    this.initializing = false;
-                }
-            },
-            
-            // トークン要求
-            requestAccessToken: function() {
-                return new Promise((resolve, reject) => {
-                    if (!this.tokenClient) {
-                        reject(new Error('Token client not initialized'));
-                        return;
-                    }
-                    
-                    // コールバックを一時的に保存
-                    this._tokenResolve = resolve;
-                    this._tokenReject = reject;
-                    
-                    // トークン要求を開始
-                    this.tokenClient.requestAccessToken();
+            // エクスポート機能のイベントリスナー
+            const exportBtn = document.getElementById('exportToExcelBtn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', function() {
+                    // チャット履歴をエクセル形式でエクスポート
+                    window.exportChatHistory();
                 });
-            },
-            
-            _handleTokenSuccess: function(response) {
-                if (this._tokenResolve) {
-                    this._tokenResolve(response.access_token);
-                    this._tokenResolve = null;
-                    this._tokenReject = null;
-                }
-            },
-            
-            _handleTokenError: function(error) {
-                if (this._tokenReject) {
-                    this._tokenReject(new Error(error));
-                    this._tokenResolve = null;
-                    this._tokenReject = null;
-                }
             }
-        };
-        
-        // Google Identity Services スクリプトの読み込み
-        function loadGoogleGISScript() {
-            return new Promise((resolve, reject) => {
-                if (window.google && window.google.accounts) {
-                    console.log('Google Identity Services already loaded');
-                    resolve();
-                    return;
-                }
-                
-                const script = document.createElement('script');
-                script.src = 'https://accounts.google.com/gsi/client';
-                script.onload = () => {
-                    console.log('Google Identity Services script loaded');
-                    window.googleGISManager.loaded = true;
-                    resolve();
-                };
-                script.onerror = () => {
-                    console.error('Failed to load Google Identity Services script');
-                    window.googleGISManager.error = true;
-                    reject(new Error('Google Identity Servicesスクリプトの読み込みに失敗しました'));
-                };
-                
-                document.head.appendChild(script);
-            });
-        }
-        
-        // ページ読み込み時の処理
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                await loadGoogleGISScript();
-                console.log('Google Identity Services script ready, waiting for Chat.js...');
-            } catch (error) {
-                console.error('Google Identity Services script loading failed:', error);
+            
+            // 履歴エクスポートボタン
+            const exportHistoryBtn = document.getElementById('exportHistoryBtn');
+            if (exportHistoryBtn) {
+                exportHistoryBtn.addEventListener('click', function() {
+                    window.exportChatHistory();
+                });
             }
         });
+        
+        // エクスポート機能（シンプル版）
+        window.exportChatHistory = function() {
+            try {
+                console.log('Exporting chat history...');
+                
+                // エクスポート処理をchat.jsに委任
+                if (window.ExportManager) {
+                    window.ExportManager.exportToExcel();
+                } else {
+                    console.warn('ExportManager not available');
+                }
+            } catch (error) {
+                console.error('Export failed:', error);
+            }
+        };
     </script>
     <script src="chat.js"></script>
 </body>
