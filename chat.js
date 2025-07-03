@@ -247,7 +247,7 @@ async function getAIResponse(userMessage) {
     const prompt = createPersonaPrompt(userMessage);
 
     try {
-        const response = await fetch('/persona/api.php', {
+        const response = await fetch('api.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

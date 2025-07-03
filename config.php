@@ -110,7 +110,6 @@ define('DB_CONFIG', [
 function getConfig($key, $default = null) {
     $configs = [
         'llm_providers' => LLM_PROVIDERS,
-        'google_api' => GOOGLE_API_CONFIG,
         'security' => SECURITY_CONFIG,
         'log' => LOG_CONFIG,
         'database' => DB_CONFIG

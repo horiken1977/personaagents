@@ -23,6 +23,8 @@ class LLMAPIHub {
      */
     public function handleRequest() {
         try {
+            // デバッグログ
+            error_log("API Request: " . $_SERVER['REQUEST_METHOD'] . " " . $_SERVER['REQUEST_URI']);
             // GETリクエストの処理
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $action = $_GET['action'] ?? '';
@@ -51,11 +53,16 @@ class LLMAPIHub {
             
             // リクエストボディの取得
             $rawInput = file_get_contents('php://input');
+            error_log("API Raw Input: " . $rawInput);
+            
             $input = json_decode($rawInput, true);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
+                error_log("JSON Parse Error: " . json_last_error_msg());
                 throw new Exception('Invalid JSON in request body', 400);
             }
+            
+            error_log("API Parsed Input: " . json_encode($input));
             
             // Google Spreadsheet関連処理は削除済み
             
@@ -109,7 +116,7 @@ class LLMAPIHub {
             ],
             'personaId' => [
                 'required' => false,
-                'type' => 'integer'
+                'type' => 'string'
             ]
         ];
         
@@ -130,7 +137,13 @@ class LLMAPIHub {
      */
     private function callLLMAPI($input) {
         $provider = $input['provider'];
-        $config = $this->providers[$provider];
+        error_log("LLM API Call: Provider = $provider");
+        error_log("Available providers: " . json_encode(array_keys($this->providers ?? [])));
+        
+        $config = $this->providers[$provider] ?? null;
+        if (!$config) {
+            throw new Exception("プロバイダー設定が見つかりません: {$provider}", 400);
+        }
         
         // サーバー側でAPIキーを取得
         $apiKey = getApiKey($provider);
