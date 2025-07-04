@@ -1,6 +1,7 @@
 // チャット画面の状態管理
 let currentPersona = null;
 let chatHistory = [];
+let isInputConfirmed = false; // 入力確定状態を管理
 
 // DOM読み込み完了時の初期化
 document.addEventListener('DOMContentLoaded', function() {
@@ -99,11 +100,14 @@ function initializeEventListeners() {
         chatInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                sendMessage();
+                handleEnterKey();
             }
         });
 
-        chatInput.addEventListener('input', updateCharCount);
+        chatInput.addEventListener('input', function() {
+            updateCharCount();
+            resetInputConfirmedState();
+        });
     }
 
     // 戻るボタン
@@ -177,6 +181,64 @@ function updateCharCount() {
     }
 }
 
+// Enterキー処理（ダブルEnter方式）
+function handleEnterKey() {
+    const chatInput = document.getElementById('chatInput');
+    if (!chatInput) return;
+    
+    if (!isInputConfirmed) {
+        // 1回目のEnter: 入力確定
+        confirmInput();
+    } else {
+        // 2回目のEnter: メッセージ送信
+        sendMessage();
+    }
+}
+
+// 入力確定処理
+function confirmInput() {
+    const chatInput = document.getElementById('chatInput');
+    if (!chatInput || !chatInput.value.trim()) return;
+    
+    isInputConfirmed = true;
+    updateInputStatus();
+    
+    // カーソルを末尾に移動
+    chatInput.setSelectionRange(chatInput.value.length, chatInput.value.length);
+}
+
+// 入力確定状態をリセット
+function resetInputConfirmedState() {
+    if (isInputConfirmed) {
+        isInputConfirmed = false;
+        updateInputStatus();
+    }
+}
+
+// 入力状態の視覚的フィードバック
+function updateInputStatus() {
+    const chatInput = document.getElementById('chatInput');
+    const statusIndicator = document.getElementById('inputStatus');
+    
+    if (!chatInput) return;
+    
+    if (isInputConfirmed) {
+        chatInput.style.borderColor = '#28a745';
+        chatInput.style.borderWidth = '2px';
+        if (statusIndicator) {
+            statusIndicator.textContent = '✓ 確定済み - もう一度Enterで送信';
+            statusIndicator.style.color = '#28a745';
+            statusIndicator.style.display = 'block';
+        }
+    } else {
+        chatInput.style.borderColor = '';
+        chatInput.style.borderWidth = '';
+        if (statusIndicator) {
+            statusIndicator.style.display = 'none';
+        }
+    }
+}
+
 // メッセージ送信
 async function sendMessage() {
     const chatInput = document.getElementById('chatInput');
@@ -227,6 +289,9 @@ async function sendMessage() {
         chatHistory.push(historyItem);
         saveChatHistory();
         updateHistoryDisplay();
+        
+        // 入力確定状態をリセット
+        resetInputConfirmedState();
 
     } catch (error) {
         console.error('AI応答の取得に失敗:', error);

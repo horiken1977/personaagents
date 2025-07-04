@@ -43,10 +43,13 @@
                 <div class="chat-input-wrapper">
                     <textarea 
                         id="chatInput" 
-                        placeholder="ペルソナに質問を入力してください...（Shift+Enterで改行、Enterで送信）"
+                        placeholder="ペルソナに質問を入力してください...（Shift+Enterで改行、Enter2回で送信）"
                         rows="3"
                         maxlength="1000"
                     ></textarea>
+                    <div class="input-status" id="inputStatus" style="display: none;">
+                        ✓ 確定済み - もう一度Enterで送信
+                    </div>
                     <div class="input-actions">
                         <span class="char-count">0/1000</span>
                         <button id="sendBtn" class="btn btn-primary">
