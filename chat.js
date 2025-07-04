@@ -245,22 +245,31 @@ async function sendMessage() {
 async function getAIResponse(userMessage) {
     const llmProvider = sessionStorage.getItem('llmProvider') || 'openai';
     const prompt = createPersonaPrompt(userMessage);
+    
+    console.log('Sending request with provider:', llmProvider);
+    console.log('Prompt length:', prompt.length);
 
     try {
+        const requestData = {
+            provider: llmProvider,
+            prompt: prompt,
+            personaId: currentPersona.id
+        };
+        
+        console.log('Request data:', requestData);
+        
         const response = await fetch('api.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                provider: llmProvider,
-                prompt: prompt,
-                personaId: currentPersona.id
-            })
+            body: JSON.stringify(requestData)
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const errorText = await response.text();
+            console.error('API Error Response:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
         const data = await response.json();

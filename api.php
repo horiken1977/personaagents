@@ -112,7 +112,7 @@ class LLMAPIHub {
             'prompt' => [
                 'required' => true,
                 'type' => 'string',
-                'max_length' => 10000
+                'max_length' => 50000
             ],
             'personaId' => [
                 'required' => false,
@@ -123,11 +123,15 @@ class LLMAPIHub {
         $errors = validateInput($input, $rules);
         
         if (!empty($errors)) {
+            error_log("Validation errors: " . json_encode($errors));
+            error_log("Input data keys: " . json_encode(array_keys($input)));
+            error_log("Prompt length: " . strlen($input['prompt'] ?? ''));
             throw new Exception('Validation failed: ' . implode(', ', $errors), 400);
         }
         
         // プロバイダーの存在確認
-        if (!array_key_exists($input['provider'], $this->providers)) {
+        if (!$this->providers || !array_key_exists($input['provider'], $this->providers)) {
+            error_log("Available providers: " . json_encode($this->providers));
             throw new Exception('Unsupported LLM provider: ' . $input['provider'], 400);
         }
     }
