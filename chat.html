@@ -75,9 +75,6 @@
                     <button id="clearHistoryBtn" class="btn btn-outline-danger">
                         履歴をクリア
                     </button>
-                    <button id="exportHistoryBtn" class="btn btn-outline">
-                        履歴をエクスポート
-                    </button>
                 </div>
             </div>
         </aside>
@@ -133,35 +130,20 @@
             const exportBtn = document.getElementById('exportToExcelBtn');
             if (exportBtn) {
                 exportBtn.addEventListener('click', function() {
-                    // チャット履歴をエクセル形式でエクスポート
-                    window.exportChatHistory();
+                    // チャット履歴をCSV形式でエクスポート
+                    if (window.ExportManager) {
+                        const exportManager = new window.ExportManager();
+                        exportManager.exportToCSV();
+                    } else {
+                        console.warn('ExportManager not available');
+                    }
                 });
             }
             
-            // 履歴エクスポートボタン
-            const exportHistoryBtn = document.getElementById('exportHistoryBtn');
-            if (exportHistoryBtn) {
-                exportHistoryBtn.addEventListener('click', function() {
-                    window.exportChatHistory();
-                });
-            }
+            // JSON履歴エクスポートボタンは削除済み
         });
         
-        // エクスポート機能（シンプル版）
-        window.exportChatHistory = function() {
-            try {
-                console.log('Exporting chat history...');
-                
-                // エクスポート処理をchat.jsに委任
-                if (window.ExportManager) {
-                    window.ExportManager.exportToExcel();
-                } else {
-                    console.warn('ExportManager not available');
-                }
-            } catch (error) {
-                console.error('Export failed:', error);
-            }
-        };
+        // JSONエクスポート関数は削除済み - CSVエクスポートのみ利用可能
     </script>
     <script src="chat.js"></script>
 </body>

@@ -151,14 +151,8 @@ function initializeEventListeners() {
 
     // 履歴管理
     const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-    const exportHistoryBtn = document.getElementById('exportHistoryBtn');
-
     if (clearHistoryBtn) {
         clearHistoryBtn.addEventListener('click', clearChatHistory);
-    }
-
-    if (exportHistoryBtn) {
-        exportHistoryBtn.addEventListener('click', exportChatHistory);
     }
 }
 
@@ -498,33 +492,7 @@ function clearChatHistory() {
     }
 }
 
-function exportChatHistory() {
-    if (chatHistory.length === 0) {
-        showErrorMessage('エクスポートする履歴がありません。');
-        return;
-    }
-
-    const exportData = {
-        exportDate: new Date().toISOString(),
-        totalItems: chatHistory.length,
-        history: chatHistory
-    };
-
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-        type: 'application/json'
-    });
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `chat-history-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    showSuccessMessage('履歴をエクスポートしました。');
-}
+// JSON履歴エクスポート機能は削除済み
 
 // 旧Google API初期化コード（削除済み - 新しいマネージャーシステムを使用）
 
