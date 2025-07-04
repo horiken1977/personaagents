@@ -253,7 +253,7 @@ async function getAIResponse(userMessage) {
         const requestData = {
             provider: llmProvider,
             prompt: prompt,
-            personaId: currentPersona.id
+            personaId: String(currentPersona.id)
         };
         
         console.log('Request data:', requestData);

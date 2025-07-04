@@ -273,6 +273,8 @@ function validateType($value, $type) {
             return filter_var($value, FILTER_VALIDATE_EMAIL) !== false;
         case 'url':
             return filter_var($value, FILTER_VALIDATE_URL) !== false;
+        case 'mixed':
+            return true;  // 任意の型を許可
         default:
             return true;
     }

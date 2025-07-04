@@ -116,7 +116,7 @@ class LLMAPIHub {
             ],
             'personaId' => [
                 'required' => false,
-                'type' => 'string'
+                'type' => 'mixed'  // 文字列または数値を許可
             ]
         ];
         
