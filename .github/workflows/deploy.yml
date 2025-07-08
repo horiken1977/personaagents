@@ -1,4 +1,4 @@
-name: Deploy to Sakura Internet
+name: Deploy to Vercel
 
 on:
   push:
@@ -13,36 +13,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Deploy files
-      env:
-        SSHPASS: ${{ secrets.SFTP_PASSWORD }}
-      run: |
-        # Install sshpass for password authentication
-        sudo apt-get update
-        sudo apt-get install -y sshpass rsync
-        
-        # Deploy using rsync with exclusions
-        sshpass -e rsync -avz --delete \
-          --exclude='.git/' \
-          --exclude='.github/' \
-          --exclude='logs/' \
-          --exclude='tests/' \
-          --exclude='docs/' \
-          --exclude='*.log' \
-          --exclude='.env*' \
-          --exclude='README.md' \
-          --exclude='SETUP.md' \
-          --exclude='SECURITY_INCIDENT_REPORT.md' \
-          --exclude='*.pem' \
-          --exclude='*.key' \
-          --exclude='roic/' \
-          --exclude='.DS_Store' \
-          --exclude='*.tmp' \
-          --exclude='*.bak' \
-          -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5" \
-          ./ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_REMOTE_PATH }}
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: ./
+        vercel-args: '--prod'
         
     - name: Deployment notification
       run: |
-        echo "✅ デプロイが完了しました！"
-        echo "🌐 サイトURL: https://mokumoku.sakura.ne.jp/persona/"
+        echo "✅ Vercelデプロイが完了しました！"
+        echo "🌐 サイトURL: https://personaagents-h6bpmq747-horikens-projects.vercel.app"

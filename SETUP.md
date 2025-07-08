@@ -337,7 +337,7 @@ php tests/run_all_tests.php
 
 - **API ドキュメント**: [OpenAI](https://platform.openai.com/docs) | [Claude](https://docs.anthropic.com/) | [Gemini](https://ai.google.dev/)
 - **Google Sheets API**: [公式ドキュメント](https://developers.google.com/sheets/api)
-- **さくらインターネット**: [サポートページ](https://help.sakura.ad.jp/)
+- **ホスティングサービス**: 各種サポートページを参照
 
 ---
 

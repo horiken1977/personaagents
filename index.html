@@ -15,15 +15,19 @@
 
         <main class="main">
             <section class="intro">
-                <h2>ペルソナを選択して対話を開始</h2>
-                <p>北米市場の多様な消費者層を代表する10のペルソナから、質問したい対象を選択してください。</p>
+                <h2>カテゴリを選択してください</h2>
+                <p>対話したいペルソナのカテゴリを選択してください。</p>
             </section>
 
-            <section class="persona-grid" id="personaGrid">
+            <section class="category-grid" id="categoryGrid">
+                <!-- カテゴリカードは JavaScript で動的に生成 -->
+            </section>
+            
+            <section class="persona-grid" id="personaGrid" style="display: none;">
                 <!-- ペルソナカードは JavaScript で動的に生成 -->
             </section>
 
-            <section class="settings">
+            <section class="settings" id="settingsSection" style="display: none;">
                 <div class="settings-group">
                     <label for="llmProvider">LLMプロバイダー:</label>
                     <select id="llmProvider" class="settings-select">
@@ -42,6 +46,10 @@
                             <span class="status-loading">APIの状態を確認中...</span>
                         </div>
                     </div>
+                </div>
+                
+                <div class="navigation-buttons">
+                    <button id="backToCategoriesBtn" class="btn btn-secondary">カテゴリ選択に戻る</button>
                 </div>
             </section>
         </main>

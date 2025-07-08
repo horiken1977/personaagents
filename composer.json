@@ -1,6 +1,6 @@
 {
-    "name": "personaagent/testing-suite",
-    "description": "PersonaAgent Unit Testing Suite",
+    "name": "personaagents/testing-suite",
+    "description": "PersonaAgents Unit Testing Suite",
     "type": "project",
     "require": {
         "php": ">=7.4"
@@ -12,7 +12,7 @@
     },
     "autoload": {
         "psr-4": {
-            "PersonaAgent\\": "src/"
+            "PersonaAgents\\": "src/"
         }
     },
     "scripts": {

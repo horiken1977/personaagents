@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# PersonaAgent 自動記録スクリプト
+# PersonaAgents 自動記録スクリプト
 # チャット内容と作業内容を1時間毎にCLAUDE.mdに記録
 
 # 設定
-PROJECT_DIR="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent"
+PROJECT_DIR="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagents"
 CLAUDE_MD="$PROJECT_DIR/CLAUDE.md"
 LOGS_DIR="$PROJECT_DIR/logs"
 EXPORTS_DIR="$PROJECT_DIR/exports"
@@ -82,7 +82,7 @@ terminal_output() {
     local git_activity=$2
     
     echo "======================================"
-    echo "PersonaAgent 自動記録 - $TIMESTAMP"
+    echo "PersonaAgents 自動記録 - $TIMESTAMP"
     echo "======================================"
     echo "📊 チャット活動: ${chat_activity}件"
     echo "🔄 Git活動: ${git_activity}件"

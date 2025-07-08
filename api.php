@@ -37,6 +37,45 @@ class LLMAPIHub {
                     ];
                     sendJsonResponse($hasKeys);
                     return;
+                } elseif ($action === 'get_categories') {
+                    // カテゴリデータの取得
+                    $personasFile = __DIR__ . '/personas.json';
+                    if (file_exists($personasFile)) {
+                        $personasData = json_decode(file_get_contents($personasFile), true);
+                        if ($personasData && isset($personasData['categories'])) {
+                            sendJsonResponse($personasData['categories']);
+                        } else {
+                            throw new Exception('Invalid personas data structure', 500);
+                        }
+                    } else {
+                        throw new Exception('Personas data file not found', 404);
+                    }
+                    return;
+                } elseif ($action === 'get_personas') {
+                    // 特定カテゴリのペルソナデータの取得
+                    $categoryId = $_GET['category'] ?? '';
+                    if (empty($categoryId)) {
+                        throw new Exception('Category ID is required', 400);
+                    }
+                    
+                    $personasFile = __DIR__ . '/personas.json';
+                    if (file_exists($personasFile)) {
+                        $personasData = json_decode(file_get_contents($personasFile), true);
+                        if ($personasData && isset($personasData['categories'])) {
+                            foreach ($personasData['categories'] as $category) {
+                                if ($category['id'] === $categoryId) {
+                                    sendJsonResponse($category['personas']);
+                                    return;
+                                }
+                            }
+                            throw new Exception('Category not found', 404);
+                        } else {
+                            throw new Exception('Invalid personas data structure', 500);
+                        }
+                    } else {
+                        throw new Exception('Personas data file not found', 404);
+                    }
+                    return;
                 }
             }
             

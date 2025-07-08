@@ -12,10 +12,10 @@
          failOnWarning="true"
          verbose="true">
     <testsuites>
-        <testsuite name="PersonaAgent Unit Tests">
+        <testsuite name="PersonaAgents Unit Tests">
             <directory>tests/Unit</directory>
         </testsuite>
-        <testsuite name="PersonaAgent Integration Tests">
+        <testsuite name="PersonaAgents Integration Tests">
             <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>

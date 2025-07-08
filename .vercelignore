@@ -1,0 +1,22 @@
+# Vercel deployment ignore file
+.git/
+.github/
+logs/
+tests/
+docs/
+*.log
+.env*
+README.md
+SETUP.md
+SECURITY_INCIDENT_REPORT.md
+*.pem
+*.key
+roic/
+.DS_Store
+*.tmp
+*.bak
+CLAUDE.md*
+composer.json
+composer.lock
+phpunit.xml
+test-results.xml

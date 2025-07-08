@@ -24,7 +24,7 @@ Options -Indexes
 # URLリライト
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /persona/
+    RewriteBase /
     
     # API エンドポイント
     RewriteCond %{REQUEST_FILENAME} !-f
@@ -33,5 +33,5 @@ Options -Indexes
 </IfModule>
 
 # エラーページ
-ErrorDocument 404 /persona/error.php?code=404
-ErrorDocument 500 /persona/error.php?code=500
+ErrorDocument 404 /error.php?code=404
+ErrorDocument 500 /error.php?code=500

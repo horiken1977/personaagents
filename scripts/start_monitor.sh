@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# PersonaAgent 監視スクリプト起動
+# PersonaAgents 監視スクリプト起動
 # 1時間毎に自動記録を実行し、ターミナルに出力
 
-PROJECT_DIR="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent"
+PROJECT_DIR="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagents"
 SCRIPT_PATH="$PROJECT_DIR/scripts/auto_record.sh"
 LOG_FILE="$PROJECT_DIR/logs/monitor_$(date '+%Y-%m-%d').log"
 
-echo "PersonaAgent 自動記録監視を開始します..."
+echo "PersonaAgents 自動記録監視を開始します..."
 echo "監視開始時刻: $(date)"
 echo "ログファイル: $LOG_FILE"
 echo "実行間隔: 1時間毎"

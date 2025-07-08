@@ -98,7 +98,7 @@ define('LOG_CONFIG', [
 // データベース設定（将来の拡張用）
 define('DB_CONFIG', [
     'host' => getenv('DB_HOST') ?: 'localhost',
-    'name' => getenv('DB_NAME') ?: 'personaagent',
+    'name' => getenv('DB_NAME') ?: 'personaagents',
     'user' => getenv('DB_USER') ?: 'root',
     'pass' => getenv('DB_PASS') ?: '',
     'charset' => 'utf8mb4'

@@ -1,4 +1,4 @@
-# PersonaAgent プロジェクト - Claude Code セッション記録
+# PersonaAgents プロジェクト - Claude Code セッション記録
 
 ## プロジェクト概要
 **北米市場調査AIエージェント** - 日系調味料メーカーの北米進出を支援するAIペルソナ対話システム
@@ -64,7 +64,7 @@
    - 実行：`git reset --hard 673650d` → `git push --force origin main`
 
 2. **デプロイ設定の修正** - 本番環境パスの正確な設定
-   - 問題：デプロイ先パスが`/agent/`と`/persona/`で混同していた
+   - 問題：デプロイ先パスが`/agent/`と`/persona/`で混同していた（現在は統一済み）
    - 解決：GitHub Secretsの`SSH_REMOTE_PATH`を正しく`persona/`に設定
    - 修正：`.github/workflows/deploy.yml`の通知URLを正しいパスに修正
    - 結果：GitHub Actionsによる自動デプロイ成功
@@ -77,7 +77,7 @@
 
 ### 技術的詳細
 - **ロールバック対象**: コミット`673650d`（2025-07-04）
-- **デプロイ環境**: https://mokumoku.sakura.ne.jp/persona/
+- **デプロイ環境**: (未設定)
 - **修正ファイル**: `.github/workflows/deploy.yml`
 - **GitHub Actions**: 複数回のデプロイ実行で最終的に成功
 - **重要な学習**: デプロイ先パスの確認とリモートリポジトリ状態の重要性
@@ -93,15 +93,15 @@
    - 対処：VSCode再起動、Settings Syncのオフ/オン、拡張機能リセット
 
 ### 現在の環境
-- **プロジェクト**: PersonaAgent (日系調味料メーカー向け市場調査アプリ)
+- **プロジェクト**: PersonaAgents (日系調味料メーカー向け市場調査アプリ)
 - **言語**: JavaScript, PHP
 - **主要機能**: ペルソナチャット、履歴管理、CSVエクスポート
 - **LLMプロバイダー**: OpenAI, Claude, Gemini
-- **本番環境**: https://mokumoku.sakura.ne.jp/persona/
+- **本番環境**: (未設定)
 
 ### プロジェクト構造
 ```
-personaagent/
+personaagents/
 ├── index.html              # ペルソナ選択画面
 ├── chat.html               # チャット画面
 ├── chat.js                 # チャット機能（リトライ機能付き）
@@ -160,6 +160,41 @@ personaagent/
 2. **パス設定**: デプロイ先パスの正確な設定が必須
 3. **作業記録**: CLAUDE.mdによる作業履歴の重要性
 4. **緊急対応**: デグレード発生時の迅速な対応手順の確立
+
+---
+
+## 🔧 技術・アーキテクチャ改善実装完了
+
+### 第29回セッション: 2025年7月8日 13:00-
+- **目的**: デプロイ先変更に伴う設定更新
+- **状況**: personaagentからコピーしたpersonaagentsアプリケーションの設定変更
+- **対応内容**:
+  - デプロイ先の設定削除（Sakura Internet関連）
+  - personaagent（単数形）をpersonaagents（複数形）に全て置換
+  - 本履歴に変更内容を追記
+
+### 完了した作業:
+1. **デプロイ先設定の削除**
+   - DEPLOYMENT_GUIDE.md: mokumoku.sakura.ne.jp参照を削除
+   - security_headers.php: 許可オリジンをyourdomain.comに変更
+   - setup.php: Google OAuthリダイレクトURIを汎用的に変更
+   - .htaccess: /persona/パスを/に変更
+   - test_api.php, chat.js: APIパスから/persona/を削除
+   - 各種ドキュメントから本番環境URLを削除
+
+2. **命名の統一（personaagent → personaagents）**
+   - config.php: データベース名をpersonaagentsに変更
+   - composer.json: パッケージ名とnamespaceを複数形に変更
+   - scripts/: 全スクリプトファイルでプロジェクトパスと表示名を更新
+   - setup.php: ページタイトルをPersonaAgentsに変更
+   - docs/: ドキュメントファイルのタイトルと構造図を更新
+   - phpunit.xml: テストスイート名を複数形に変更
+   - CLAUDE.md: プロジェクト名とディレクトリ構造を更新
+   - SECURITY_INCIDENT_REPORT.md: リポジトリ名を複数形に変更
+
+**履歴**: 本アプリケーションは https://github.com/horiken1977/personaagent からコピーし、personaagents用に再構成されました。
+
+---
 ## 自動記録 - 2025-07-07 13:33:25
 
 ### 活動サマリー

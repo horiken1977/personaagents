@@ -1,36 +1,86 @@
-// ペルソナデータと選択されたペルソナを管理
+// カテゴリデータ、ペルソナデータ、選択状態を管理
+let categories = [];
+let selectedCategory = null;
 let personas = [];
 let selectedPersona = null;
 
 // DOM読み込み完了時の初期化
 document.addEventListener('DOMContentLoaded', function() {
-    loadPersonas();
+    loadCategories();
     initializeEventListeners();
     loadSettings();
-    loadSavedApiKeys();
 });
 
-// ペルソナデータの読み込み
-async function loadPersonas() {
+// カテゴリデータの読み込み
+async function loadCategories() {
     try {
         const response = await fetch('personas.json');
         const data = await response.json();
-        personas = data.personas;
-        renderPersonaGrid();
+        categories = data.categories;
+        renderCategoryGrid();
     } catch (error) {
-        console.error('ペルソナデータの読み込みに失敗しました:', error);
-        showErrorMessage('ペルソナデータを読み込めませんでした。');
+        console.error('カテゴリデータの読み込みに失敗しました:', error);
+        showErrorMessage('カテゴリデータを読み込めませんでした。');
     }
+}
+
+// カテゴリグリッドのレンダリング
+function renderCategoryGrid() {
+    const grid = document.getElementById('categoryGrid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    categories.forEach((category, index) => {
+        const card = createCategoryCard(category, index);
+        grid.appendChild(card);
+    });
+}
+
+// カテゴリカードの作成
+function createCategoryCard(category, index) {
+    const card = document.createElement('div');
+    card.className = 'category-card';
+    card.setAttribute('data-category-id', category.id);
+    
+    // アニメーション遅延を設定
+    card.style.animationDelay = `${index * 0.2}s`;
+
+    card.innerHTML = `
+        <div class="category-header">
+            <div class="category-icon">${category.icon}</div>
+            <h3 class="category-name">${category.name}</h3>
+        </div>
+        <div class="category-info">
+            <p class="category-description">${category.description}</p>
+            <div class="category-details">
+                <span class="category-market">🌍 ${category.target_market}</span>
+                <span class="category-focus">🎯 ${category.focus_area}</span>
+            </div>
+            <div class="category-count">
+                <span>👥 ${category.personas.length}人のペルソナ</span>
+            </div>
+        </div>
+        <div class="category-actions">
+            <button class="btn btn-primary select-category-btn">このカテゴリを選択</button>
+        </div>
+    `;
+
+    // カテゴリ選択イベント
+    const selectBtn = card.querySelector('.select-category-btn');
+    selectBtn.addEventListener('click', () => selectCategory(category));
+
+    return card;
 }
 
 // ペルソナグリッドのレンダリング
 function renderPersonaGrid() {
     const grid = document.getElementById('personaGrid');
-    if (!grid) return;
+    if (!grid || !selectedCategory) return;
 
     grid.innerHTML = '';
 
-    personas.forEach((persona, index) => {
+    selectedCategory.personas.forEach((persona, index) => {
         const card = createPersonaCard(persona, index);
         grid.appendChild(card);
     });
@@ -191,6 +241,53 @@ function initializeEventListeners() {
     if (saveApiBtn) {
         saveApiBtn.addEventListener('click', saveApiKey);
     }
+
+    // カテゴリに戻るボタン
+    const backBtn = document.getElementById('backToCategoriesBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', backToCategories);
+    }
+}
+
+// カテゴリ選択処理
+function selectCategory(category) {
+    selectedCategory = category;
+    personas = category.personas;
+    
+    // UI切り替え
+    document.getElementById('categoryGrid').style.display = 'none';
+    document.getElementById('personaGrid').style.display = 'block';
+    document.getElementById('settingsSection').style.display = 'block';
+    
+    // イントロテキスト更新
+    const intro = document.querySelector('.intro h2');
+    const introDesc = document.querySelector('.intro p');
+    if (intro) intro.textContent = `${category.name}のペルソナを選択してください`;
+    if (introDesc) introDesc.textContent = `${category.description}から、対話したいペルソナを選択してください。`;
+    
+    // ペルソナグリッドをレンダリング
+    renderPersonaGrid();
+    
+    // APIキー状態チェック
+    loadSavedApiKeys();
+}
+
+// カテゴリ選択に戻る処理
+function backToCategories() {
+    selectedCategory = null;
+    personas = [];
+    selectedPersona = null;
+    
+    // UI切り替え
+    document.getElementById('categoryGrid').style.display = 'block';
+    document.getElementById('personaGrid').style.display = 'none';
+    document.getElementById('settingsSection').style.display = 'none';
+    
+    // イントロテキスト復元
+    const intro = document.querySelector('.intro h2');
+    const introDesc = document.querySelector('.intro p');
+    if (intro) intro.textContent = 'カテゴリを選択してください';
+    if (introDesc) introDesc.textContent = '対話したいペルソナのカテゴリを選択してください。';
 }
 
 // APIキーのプレースホルダー更新

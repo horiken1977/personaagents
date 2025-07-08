@@ -1,26 +1,33 @@
-# API キー隠蔽対応 デプロイメントガイド
+# PersonaAgents Vercel デプロイメントガイド
 
 ## 概要
 
-このガイドでは、ユーザーからAPIキーを隠蔽し、サーバーサイドで管理するように変更されたシステムのデプロイ方法について説明します。
+このガイドでは、PersonaAgentsアプリケーションをVercelでホスティングするための設定方法について説明します。
 
-## 変更内容
+## Vercelデプロイの特徴
 
-### 1. フロントエンド
-- APIキー入力フィールドを削除
-- APIキー状態確認機能を追加
-- ユーザーはAPIキーを入力する必要がなくなりました
+### 1. 自動デプロイ
+- GitHubからのプッシュで自動デプロイ
+- ブランチプレビュー機能
+- 環境変数の安全な管理
 
-### 2. バックエンド
-- APIキーはサーバー側で管理
-- 環境変数または設定ファイルから読み込み
-- セキュリティヘッダーの強化
+### 2. PHPランタイム
+- Vercel PHP Runtimeを使用
+- サーバーレス関数でAPIを実行
+- グローバルCDNで高速配信
 
-## デプロイ手順
+## Vercelデプロイ手順
 
-### 1. 環境変数の設定
+### 1. Vercelプロジェクトの作成
 
-`.env` ファイルを作成し、以下の内容を設定してください：
+1. [Vercel](https://vercel.com/)にログイン
+2. 「New Project」からGitHubリポジトリを連携
+3. プロジェクト名: `personaagents`
+4. Framework Preset: `Other`
+
+### 2. 環境変数の設定
+
+Vercelダッシュボードで環境変数を設定：
 
 ```bash
 # LLM API Keys
@@ -28,23 +35,29 @@ OPENAI_API_KEY=sk-your-openai-api-key-here
 ANTHROPIC_API_KEY=sk-ant-your-anthropic-api-key-here
 GOOGLE_AI_API_KEY=AIza-your-google-ai-api-key-here
 
-# Google OAuth設定
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-
 # セキュリティ設定
-ALLOWED_ORIGINS=https://mokumoku.sakura.ne.jp
+ALLOWED_ORIGINS=https://personaagents-h6bpmq747-horikens-projects.vercel.app
 DEBUG_MODE=false
 ```
 
-### 2. ファイルの権限設定
+### 3. GitHub Secretsの設定
+
+GitHub Actions用のSECRETSを設定：
 
 ```bash
-# .envファイルの権限を制限
-chmod 600 .env
+VERCEL_TOKEN=your-vercel-token
+VERCEL_ORG_ID=your-org-id
+VERCEL_PROJECT_ID=your-project-id
+```
 
-# api_keys.jsonファイルの権限を制限（使用している場合）
-chmod 600 api_keys.json
+### 4. デプロイの実行
+
+```bash
+# ローカルでテスト（オプション）
+npx vercel dev
+
+# 本番デプロイ
+git push origin main
 ```
 
 ### 3. Webサーバー設定
@@ -102,10 +115,11 @@ location ~ /api_keys\.json {
 
 ### 5. 動作確認
 
-1. ブラウザで `https://mokumoku.sakura.ne.jp/persona/` にアクセス
-2. APIキー入力フィールドが表示されないことを確認
-3. 「APIキーが利用可能です」または「APIキーが設定されていません」メッセージが表示されることを確認
-4. LLMプロバイダーを変更してAPIキー状態が更新されることを確認
+1. ブラウザで `https://personaagents-h6bpmq747-horikens-projects.vercel.app` にアクセス
+2. カテゴリ選択が正常に表示されることを確認
+3. ペルソナ選択が正常に動作することを確認
+4. APIキー状態が正しく表示されることを確認
+5. LLMとの対話が正常に動作することを確認
 
 ## トラブルシューティング
 

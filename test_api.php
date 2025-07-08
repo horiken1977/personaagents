@@ -104,13 +104,13 @@ header('Content-Type: text/html; charset=utf-8');
         resultDiv.innerHTML = '<p>Testing API endpoint...</p>';
         
         // Test GET request for Google config
-        fetch('/persona/api.php?action=get_google_config')
+        fetch('/api.php?action=get_google_config')
             .then(response => response.json())
             .then(data => {
                 resultDiv.innerHTML = '<h4>Google Config Response:</h4><pre>' + JSON.stringify(data, null, 2) + '</pre>';
                 
                 // Test POST request
-                return fetch('/persona/api.php', {
+                return fetch('/api.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

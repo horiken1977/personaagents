@@ -580,7 +580,7 @@ class ExportManager {
 // APIキーの状態をチェックして入力フィールドを非表示にする
 async function checkApiKeysAndHideInputs() {
     try {
-        const response = await fetch('/persona/api.php?action=get_api_keys');
+        const response = await fetch('/api.php?action=get_api_keys');
         if (response.ok) {
             const hasKeys = await response.json();
             

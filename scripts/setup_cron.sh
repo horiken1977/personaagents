@@ -3,10 +3,10 @@
 # crontab設定スクリプト
 # 1時間毎に自動記録を実行するcrontabエントリを設定
 
-PROJECT_DIR="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagent"
+PROJECT_DIR="/Users/aa479881/Library/CloudStorage/OneDrive-IBM/Personal/development/personaagents"
 SCRIPT_PATH="$PROJECT_DIR/scripts/auto_record.sh"
 
-echo "PersonaAgent 自動記録のcrontab設定"
+echo "PersonaAgents 自動記録のcrontab設定"
 echo "===================================="
 
 # 現在のcrontabを確認

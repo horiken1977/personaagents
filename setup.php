@@ -248,7 +248,7 @@ function testGoogleOAuth($clientId, $clientSecret) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PersonaAgent セットアップ</title>
+    <title>PersonaAgents セットアップ</title>
     <style>
         * {
             margin: 0;
@@ -436,7 +436,7 @@ function testGoogleOAuth($clientId, $clientSecret) {
 </head>
 <body>
     <div class="container">
-        <h1>🤖 PersonaAgent セットアップ</h1>
+        <h1>🤖 PersonaAgents セットアップ</h1>
         
         <?php if (isset($message)): ?>
         <div class="message <?php echo $message['type']; ?>">
@@ -529,7 +529,7 @@ function testGoogleOAuth($clientId, $clientSecret) {
                     <div id="google-oauth-result" class="test-result"></div>
                     <p class="help-text">
                         <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> で取得<br>
-                        リダイレクトURI: <code>https://mokumoku.sakura.ne.jp/persona/google_auth.php</code>
+                        リダイレクトURI: <code>https://yourdomain.com/google_auth.php</code>
                     </p>
                 </div>
                 

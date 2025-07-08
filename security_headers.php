@@ -30,7 +30,7 @@ function setSecurityHeaders() {
 
 function setCORSHeaders() {
     $allowedOrigins = [
-        'https://mokumoku.sakura.ne.jp',
+        'https://yourdomain.com',
         'https://localhost',
         'http://localhost'
     ];
