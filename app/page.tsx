@@ -2,35 +2,69 @@
 
 import { useEffect, useState } from 'react';
 
-interface Category {
+// 新しい構造に対応した型定義
+interface InterviewPurpose {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  icon: string;
+  context: string;
+  key_aspects: string[];
+}
+
+interface PersonaCategory {
   id: string;
   name: string;
   description: string;
   icon: string;
   target_market: string;
-  focus_area: string;
   personas: Persona[];
 }
 
 interface Persona {
   id: number;
   name: string;
-  age: number;
-  segment: string;
-  location: string;
-  household_income: string;
-  family_status: string;
-  cooking_frequency: string;
-  health_concerns: string;
-  shopping_behavior: string;
-  food_preferences: string;
-  technology_usage: string;
-  condiment_usage: string;
-  price_sensitivity: string;
-  key_motivations: string;
-  pain_points: string;
-  japanese_food_exposure: string;
-  purchase_drivers: string;
+  basic_demographics: {
+    age: number;
+    gender: string;
+    location: string;
+    household_income: string;
+    family_status: string;
+    occupation: string;
+    education: string;
+  };
+  psychological_traits: {
+    decision_making_style: string;
+    risk_tolerance: string;
+    information_processing: string;
+    social_influence: string;
+    change_adaptability: string;
+  };
+  lifestyle: {
+    daily_routine: string;
+    hobbies: string;
+    media_consumption: string;
+    shopping_habits: string;
+  };
+  values_and_motivations: {
+    core_values: string[];
+    life_goals: string[];
+    pain_points: string[];
+    aspirations: string[];
+  };
+  cultural_background: {
+    ethnicity: string;
+    cultural_values: string[];
+    language: string;
+    cultural_influences: string;
+  };
+  communication_style: {
+    verbal_style: string;
+    detail_preference: string;
+    emotional_expression: string;
+    preferred_channels: string;
+  };
 }
 
 interface ApiStatus {
@@ -41,8 +75,11 @@ interface ApiStatus {
 }
 
 export default function Home() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  // 状態管理
+  const [purposes, setPurposes] = useState<InterviewPurpose[]>([]);
+  const [categories, setCategories] = useState<PersonaCategory[]>([]);
+  const [selectedPurpose, setSelectedPurpose] = useState<InterviewPurpose | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<PersonaCategory | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,27 +91,54 @@ export default function Home() {
   });
 
   useEffect(() => {
-    loadCategories();
+    loadData();
     checkApiStatus();
   }, []);
 
   useEffect(() => {
-    // URLパラメータからカテゴリを取得して直接表示
+    // URLパラメータからカテゴリとペルソナを復元
     const urlParams = new URLSearchParams(window.location.search);
     const categoryParam = urlParams.get('category');
+    const purposeParam = urlParams.get('purpose');
+    
     console.log('現在のURL:', window.location.href);
+    console.log('URLパラメータ purpose:', purposeParam);
     console.log('URLパラメータ category:', categoryParam);
-    console.log('利用可能なカテゴリ:', categories.map(c => c.id));
+    
+    if (purposeParam && purposes.length > 0) {
+      const purpose = purposes.find(p => p.id === purposeParam);
+      if (purpose) {
+        setSelectedPurpose(purpose);
+      }
+    }
     
     if (categoryParam && categories.length > 0) {
-      // カテゴリが指定されている場合、そのカテゴリを選択状態にする
       const category = categories.find(c => c.id === categoryParam);
-      console.log('見つかったカテゴリ:', category);
       if (category) {
         setSelectedCategory(category);
       }
     }
-  }, [categories]);
+  }, [purposes, categories]);
+
+  const loadData = async () => {
+    try {
+      // 調査目的とペルソナデータを並行して読み込み
+      const [purposesRes, personasRes] = await Promise.all([
+        fetch('/interview_purposes.json'),
+        fetch('/personas_new.json')
+      ]);
+      
+      const purposesData = await purposesRes.json();
+      const personasData = await personasRes.json();
+      
+      setPurposes(purposesData.purposes || []);
+      setCategories(personasData.categories || []);
+      setLoading(false);
+    } catch (err) {
+      setError('データの読み込みに失敗しました。');
+      setLoading(false);
+    }
+  };
 
   const checkApiStatus = async () => {
     try {
@@ -136,34 +200,30 @@ export default function Home() {
     }
   };
 
-  const loadCategories = async () => {
-    try {
-      const response = await fetch('/personas.json');
-      const data = await response.json();
-      setCategories(data.categories || []);
-      setLoading(false);
-    } catch (err) {
-      setError('カテゴリデータの読み込みに失敗しました。');
-      setLoading(false);
-    }
+  const selectPurpose = (purpose: InterviewPurpose) => {
+    setSelectedPurpose(purpose);
+    setSelectedCategory(null);
+    setSelectedPersona(null);
   };
 
-  const selectCategory = (category: Category) => {
+  const selectCategory = (category: PersonaCategory) => {
     setSelectedCategory(category);
     setSelectedPersona(null);
   };
 
   const selectPersona = (persona: Persona) => {
     setSelectedPersona(persona);
-    // 選択されたLLMプロバイダーも含めてチャットページにリダイレクト
-    window.location.href = `/chat-new.html?personaId=${persona.id}&categoryId=${selectedCategory?.id}&llmProvider=${selectedLLM}`;
+    // チャットページにリダイレクト（調査目的も含める）
+    window.location.href = `/chat-new.html?personaId=${persona.id}&categoryId=${selectedCategory?.id}&purposeId=${selectedPurpose?.id}&llmProvider=${selectedLLM}`;
   };
 
   const goBack = () => {
-    if (selectedCategory && !selectedPersona) {
-      setSelectedCategory(null);
-    } else if (selectedPersona) {
+    if (selectedPersona) {
       setSelectedPersona(null);
+    } else if (selectedCategory) {
+      setSelectedCategory(null);
+    } else if (selectedPurpose) {
+      setSelectedPurpose(null);
     }
   };
 
@@ -186,9 +246,9 @@ export default function Home() {
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', lineHeight: 1.6, color: '#333' }}>
       <header style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', textAlign: 'center', padding: '2rem' }}>
-        <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 'bold' }}>北米市場調査AIエージェント</h1>
+        <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 'bold' }}>汎用インタビューAIエージェント</h1>
         <p style={{ margin: '0.5rem 0 0', fontSize: '1.2rem', opacity: 0.9 }}>
-          日系調味料メーカーの北米進出を支援するAIペルソナとの対話システム
+          様々な調査目的に対応する多様なペルソナとの対話システム
         </p>
       </header>
 
@@ -277,11 +337,113 @@ export default function Home() {
           </div>
         </div>
 
-        {!selectedCategory ? (
+        {/* ナビゲーション */}
+        {(selectedPurpose || selectedCategory) && (
+          <div style={{ marginBottom: '2rem' }}>
+            <button
+              onClick={goBack}
+              style={{
+                background: '#f8f9fa',
+                border: '1px solid #dee2e6',
+                borderRadius: '8px',
+                padding: '0.5rem 1rem',
+                cursor: 'pointer',
+                marginBottom: '1rem'
+              }}
+            >
+              ← 戻る
+            </button>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem' }}>
+              {selectedPurpose && (
+                <>
+                  <span>{selectedPurpose.icon} {selectedPurpose.name}</span>
+                  {selectedCategory && <span> → </span>}
+                </>
+              )}
+              {selectedCategory && (
+                <span>{selectedCategory.icon} {selectedCategory.name}</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* コンテンツ表示 */}
+        {!selectedPurpose ? (
+          // 調査目的選択
           <section>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-              <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>カテゴリを選択してください</h2>
-              <p style={{ fontSize: '1.1rem', color: '#666' }}>対話したいペルソナのカテゴリを選択してください。</p>
+              <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>調査目的を選択してください</h2>
+              <p style={{ fontSize: '1.1rem', color: '#666' }}>インタビューの目的を選択してください。</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+              {purposes.map((purpose, index) => (
+                <div
+                  key={purpose.id}
+                  onClick={() => selectPurpose(purpose)}
+                  style={{
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '2rem',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    border: '1px solid #e0e0e0'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-8px)';
+                    e.currentTarget.style.boxShadow = '0 12px 25px rgba(0, 0, 0, 0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ fontSize: '3rem', marginRight: '1rem' }}>{purpose.icon}</div>
+                    <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#333' }}>{purpose.name}</h3>
+                  </div>
+                  <p style={{ color: '#666', marginBottom: '1.5rem', lineHeight: 1.6 }}>{purpose.description}</p>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <span style={{ display: 'inline-block', marginRight: '0.5rem' }}>📁</span>
+                      <span style={{ color: '#555' }}>カテゴリ: {purpose.category}</span>
+                    </div>
+                    <div>
+                      <span style={{ display: 'inline-block', marginRight: '0.5rem' }}>🎯</span>
+                      <span style={{ color: '#555' }}>
+                        重点項目: {purpose.key_aspects.slice(0, 3).join(', ')}...
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    style={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '0.75rem 1.5rem',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      width: '100%',
+                      transition: 'opacity 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    この目的で開始
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : !selectedCategory ? (
+          // ペルソナカテゴリ選択
+          <section>
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+              <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>ペルソナグループを選択してください</h2>
+              <p style={{ fontSize: '1.1rem', color: '#666' }}>対話したいペルソナのグループを選択してください。</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
@@ -296,8 +458,7 @@ export default function Home() {
                     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
-                    border: '1px solid #e0e0e0',
-                    animationDelay: `${index * 0.2}s`
+                    border: '1px solid #e0e0e0'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-8px)';
@@ -317,10 +478,6 @@ export default function Home() {
                     <div style={{ marginBottom: '0.5rem' }}>
                       <span style={{ display: 'inline-block', marginRight: '0.5rem' }}>🌍</span>
                       <span style={{ color: '#555' }}>{category.target_market}</span>
-                    </div>
-                    <div style={{ marginBottom: '0.5rem' }}>
-                      <span style={{ display: 'inline-block', marginRight: '0.5rem' }}>🎯</span>
-                      <span style={{ color: '#555' }}>{category.focus_area}</span>
                     </div>
                     <div>
                       <span style={{ display: 'inline-block', marginRight: '0.5rem' }}>👥</span>
@@ -342,30 +499,18 @@ export default function Home() {
                     onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
                     onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                   >
-                    このカテゴリを選択
+                    このグループを選択
                   </button>
                 </div>
               ))}
             </div>
           </section>
         ) : (
+          // ペルソナ選択
           <section>
-            <div style={{ marginBottom: '2rem' }}>
-              <button
-                onClick={goBack}
-                style={{
-                  background: '#f8f9fa',
-                  border: '1px solid #dee2e6',
-                  borderRadius: '8px',
-                  padding: '0.5rem 1rem',
-                  cursor: 'pointer',
-                  marginBottom: '1rem'
-                }}
-              >
-                ← カテゴリ選択に戻る
-              </button>
-              <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>{selectedCategory.name}</h2>
-              <p style={{ color: '#666', fontSize: '1.1rem' }}>対話したいペルソナを選択してください。</p>
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+              <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>{selectedCategory.name}から選択</h2>
+              <p style={{ fontSize: '1.1rem', color: '#666' }}>対話したいペルソナを選択してください。</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
@@ -395,21 +540,23 @@ export default function Home() {
                     <div style={{ fontSize: '3rem', marginRight: '1rem' }}>👤</div>
                     <div>
                       <h3 style={{ margin: 0, fontSize: '1.3rem', color: '#333' }}>{persona.name}</h3>
-                      <p style={{ margin: '0.25rem 0 0', color: '#666' }}>{persona.age}歳・{persona.segment}</p>
+                      <p style={{ margin: '0.25rem 0 0', color: '#666' }}>
+                        {persona.basic_demographics.age}歳・{persona.basic_demographics.occupation}
+                      </p>
                     </div>
                   </div>
                   <p style={{ color: '#555', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: 1.5 }}>
-                    {persona.location} | {persona.family_status}
+                    {persona.basic_demographics.location} | {persona.basic_demographics.family_status}
                   </p>
                   <div style={{ marginBottom: '1rem' }}>
                     <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
-                      <strong>料理頻度:</strong> {persona.cooking_frequency}
+                      <strong>性格:</strong> {persona.psychological_traits.decision_making_style}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
-                      <strong>食品嗜好:</strong> {persona.food_preferences}
+                      <strong>価値観:</strong> {persona.values_and_motivations.core_values.slice(0, 2).join(', ')}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#666' }}>
-                      <strong>重視点:</strong> {persona.key_motivations}
+                      <strong>ライフスタイル:</strong> {persona.lifestyle.hobbies.split('、')[0]}
                     </div>
                   </div>
                   <button
