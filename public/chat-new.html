@@ -121,6 +121,7 @@
         <p id="loadingMessage">AI が回答を生成中...</p>
     </div>
 
+    <script src="navigation-utils.js"></script>
     <script>
         // シンプルなエクスポート機能
         document.addEventListener('DOMContentLoaded', function() {
@@ -140,41 +141,11 @@
                 });
             }
 
-            // 戻るボタンの機能を追加（chat.jsのバックアップ）
-            const backBtn = document.getElementById('backBtn');
-            console.log('インラインScript: 戻るボタン要素を確認:', backBtn);
-            if (backBtn) {
-                console.log('インラインScript: 戻るボタンのイベントリスナー設定中');
-                
-                // 既存のイベントリスナーを削除してからインラインスクリプトを優先
-                const newBackBtn = backBtn.cloneNode(true);
-                backBtn.parentNode.replaceChild(newBackBtn, backBtn);
-                
-                newBackBtn.addEventListener('click', function(e) {
-                    e.preventDefault(); // デフォルト動作を停止
-                    e.stopImmediatePropagation(); // 他のイベントリスナーを停止
-                    
-                    // URLパラメータからcategoryIdを取得
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const categoryId = urlParams.get('categoryId');
-                    
-                    console.log('インラインScript: 現在のチャット画面URL:', window.location.href);
-                    console.log('インラインScript: 全URLパラメータ:', window.location.search);
-                    console.log('インラインScript: 戻るボタンクリック, categoryId:', categoryId);
-                    
-                    if (categoryId) {
-                        // カテゴリが指定されている場合、そのカテゴリのペルソナ一覧に戻る
-                        const targetUrl = `/?category=${categoryId}`;
-                        console.log('インラインScript: リダイレクト先:', targetUrl);
-                        window.location.href = targetUrl;
-                    } else {
-                        // カテゴリが指定されていない場合、カテゴリ選択画面に戻る
-                        console.log('インラインScript: カテゴリ選択画面に戻る');
-                        window.location.href = '/';
-                    }
-                });
-                
-                console.log('インラインScript: 戻るボタンのイベントリスナー設定完了');
+            // 戻るボタンの機能を共通部品で設定
+            if (window.NavigationUtils) {
+                window.NavigationUtils.setupBackButton();
+            } else {
+                console.error('NavigationUtils not loaded');
             }
             
             // JSON履歴エクスポートボタンは削除済み

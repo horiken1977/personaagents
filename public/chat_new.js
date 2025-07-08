@@ -177,27 +177,25 @@ function initializeEventListeners() {
         console.error('チャット入力フィールドが見つかりません');
     }
 
-    // 戻るボタン - 修正版
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) {
-        console.log('戻るボタン見つかりました');
-        backBtn.addEventListener('click', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const categoryId = urlParams.get('categoryId');
-            const purposeId = urlParams.get('purposeId');
-            
-            console.log('戻るボタンクリック:', { categoryId, purposeId });
-            
-            if (categoryId && purposeId) {
-                // ペルソナ選択画面に戻る
-                window.location.href = `/?purpose=${purposeId}&category=${categoryId}`;
-            } else {
-                // 目的選択画面に戻る
-                window.location.href = '/';
-            }
-        });
+    // 戻るボタン - 共通部品を使用
+    if (window.NavigationUtils) {
+        window.NavigationUtils.setupBackButton();
     } else {
-        console.error('戻るボタンが見つかりません');
+        console.warn('NavigationUtils not available, using fallback');
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const categoryId = urlParams.get('categoryId');
+                const purposeId = urlParams.get('purposeId');
+                
+                if (categoryId && purposeId) {
+                    window.location.href = `/?purpose=${purposeId}&category=${categoryId}`;
+                } else {
+                    window.location.href = '/';
+                }
+            });
+        }
     }
 
     // その他のイベントリスナー（省略形）
