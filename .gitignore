@@ -89,3 +89,6 @@ settings.local.json
 
 # デプロイログ
 deploy.log
+
+# Vercel
+.vercel/
