@@ -29,7 +29,10 @@ function checkRateLimit(clientIP: string): boolean {
   const requests = rateLimitMap.get(clientIP)!;
   const validRequests = requests.filter(time => now - time < windowMs);
   
+  console.log(`Rate limit check for ${clientIP}: ${validRequests.length}/${maxRequests} requests in last minute`);
+  
   if (validRequests.length >= maxRequests) {
+    console.log(`Rate limit exceeded for ${clientIP}`);
     return false;
   }
 
@@ -129,9 +132,17 @@ export async function POST(request: NextRequest) {
 
     // 基本的な検証
     if (!body.provider || !body.prompt) {
+      console.log('Validation failed:', { provider: body.provider, hasPrompt: !!body.prompt });
       return NextResponse.json(
         { error: 'Provider and prompt are required' },
-        { status: 400 }
+        { 
+          status: 400,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+          }
+        }
       );
     }
 

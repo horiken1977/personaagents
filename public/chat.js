@@ -320,6 +320,23 @@ async function getAIResponse(userMessage) {
     console.log('Prompt length:', prompt.length);
 
     try {
+        // まずテストAPIで接続を確認
+        console.log('Testing API connection...');
+        const testResponse = await fetch('/api/test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ test: true, message: 'connection test' })
+        });
+        
+        if (!testResponse.ok) {
+            console.error('Test API failed:', testResponse.status, testResponse.statusText);
+        } else {
+            const testData = await testResponse.json();
+            console.log('Test API response:', testData);
+        }
+
         const requestData = {
             provider: llmProvider,
             prompt: prompt,
