@@ -139,6 +139,33 @@
                     }
                 });
             }
+
+            // 戻るボタンの機能を追加（chat.jsのバックアップ）
+            const backBtn = document.getElementById('backBtn');
+            console.log('インラインScript: 戻るボタン要素を確認:', backBtn);
+            if (backBtn) {
+                console.log('インラインScript: 戻るボタンのイベントリスナー設定中');
+                backBtn.addEventListener('click', function() {
+                    // URLパラメータからcategoryIdを取得
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const categoryId = urlParams.get('categoryId');
+                    
+                    console.log('インラインScript: 現在のチャット画面URL:', window.location.href);
+                    console.log('インラインScript: 全URLパラメータ:', window.location.search);
+                    console.log('インラインScript: 戻るボタンクリック, categoryId:', categoryId);
+                    
+                    if (categoryId) {
+                        // カテゴリが指定されている場合、そのカテゴリのペルソナ一覧に戻る
+                        const targetUrl = `/?category=${categoryId}`;
+                        console.log('インラインScript: リダイレクト先:', targetUrl);
+                        window.location.href = targetUrl;
+                    } else {
+                        // カテゴリが指定されていない場合、カテゴリ選択画面に戻る
+                        console.log('インラインScript: カテゴリ選択画面に戻る');
+                        window.location.href = '/';
+                    }
+                });
+            }
             
             // JSON履歴エクスポートボタンは削除済み
         });
