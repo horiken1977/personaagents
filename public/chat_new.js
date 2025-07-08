@@ -31,6 +31,8 @@ async function loadDataFromUrl() {
     const categoryId = urlParams.get('categoryId');
     const llmProvider = urlParams.get('llmProvider');
 
+    console.log('URLパラメータ:', { personaId, purposeId, categoryId, llmProvider });
+
     if (!personaId || !purposeId) {
         showErrorMessage('ペルソナまたは調査目的が選択されていません。');
         setTimeout(() => window.location.href = '/', 2000);
@@ -61,6 +63,9 @@ async function loadDataFromUrl() {
         
         // 調査目的を探す
         currentPurpose = purposesData.purposes.find(p => p.id === purposeId);
+
+        console.log('読み込まれたペルソナ:', currentPersona);
+        console.log('読み込まれた調査目的:', currentPurpose);
 
         if (!currentPersona || !currentPurpose) {
             throw new Error('ペルソナまたは調査目的が見つかりません。');
@@ -140,17 +145,23 @@ function getPersonaInitials(name) {
                 .substring(0, 2);
 }
 
-// イベントリスナーの初期化（既存のコードをそのまま使用）
+// イベントリスナーの初期化
 function initializeEventListeners() {
+    console.log('イベントリスナー初期化開始');
+    
     // 送信ボタン
     const sendBtn = document.getElementById('sendBtn');
     if (sendBtn) {
+        console.log('送信ボタン見つかりました');
         sendBtn.addEventListener('click', sendMessage);
+    } else {
+        console.error('送信ボタンが見つかりません');
     }
 
     // チャット入力フィールド
     const chatInput = document.getElementById('chatInput');
     if (chatInput) {
+        console.log('チャット入力フィールド見つかりました');
         chatInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -162,25 +173,114 @@ function initializeEventListeners() {
             updateCharCount();
             resetInputConfirmedState();
         });
+    } else {
+        console.error('チャット入力フィールドが見つかりません');
     }
 
-    // 戻るボタン
+    // 戻るボタン - 修正版
     const backBtn = document.getElementById('backBtn');
     if (backBtn) {
+        console.log('戻るボタン見つかりました');
         backBtn.addEventListener('click', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const categoryId = urlParams.get('categoryId');
             const purposeId = urlParams.get('purposeId');
             
+            console.log('戻るボタンクリック:', { categoryId, purposeId });
+            
             if (categoryId && purposeId) {
+                // ペルソナ選択画面に戻る
                 window.location.href = `/?purpose=${purposeId}&category=${categoryId}`;
             } else {
+                // 目的選択画面に戻る
                 window.location.href = '/';
             }
         });
+    } else {
+        console.error('戻るボタンが見つかりません');
     }
 
-    // その他の既存イベントリスナーは省略（既存のchat.jsから流用）
+    // その他のイベントリスナー（省略形）
+    setupSidebarListeners();
+    setupExportListeners();
+    setupHistoryListeners();
+}
+
+// 文字数カウント更新
+function updateCharCount() {
+    const chatInput = document.getElementById('chatInput');
+    const charCount = document.querySelector('.char-count');
+    
+    if (chatInput && charCount) {
+        const count = chatInput.value.length;
+        charCount.textContent = `${count}/1000`;
+        
+        if (count > 900) {
+            charCount.style.color = '#dc3545';
+        } else if (count > 800) {
+            charCount.style.color = '#ffc107';
+        } else {
+            charCount.style.color = '#666';
+        }
+    }
+}
+
+// Enterキー処理（ダブルEnter方式）
+function handleEnterKey() {
+    const chatInput = document.getElementById('chatInput');
+    if (!chatInput) return;
+    
+    if (!isInputConfirmed) {
+        // 1回目のEnter: 入力確定
+        confirmInput();
+    } else {
+        // 2回目のEnter: メッセージ送信
+        sendMessage();
+    }
+}
+
+// 入力確定処理
+function confirmInput() {
+    const chatInput = document.getElementById('chatInput');
+    if (!chatInput || !chatInput.value.trim()) return;
+    
+    isInputConfirmed = true;
+    updateInputStatus();
+    
+    // カーソルを末尾に移動
+    chatInput.setSelectionRange(chatInput.value.length, chatInput.value.length);
+}
+
+// 入力確定状態をリセット
+function resetInputConfirmedState() {
+    if (isInputConfirmed) {
+        isInputConfirmed = false;
+        updateInputStatus();
+    }
+}
+
+// 入力状態の視覚的フィードバック
+function updateInputStatus() {
+    const chatInput = document.getElementById('chatInput');
+    const statusIndicator = document.getElementById('inputStatus');
+    
+    if (!chatInput) return;
+    
+    if (isInputConfirmed) {
+        chatInput.style.borderColor = '#28a745';
+        chatInput.style.borderWidth = '2px';
+        if (statusIndicator) {
+            statusIndicator.textContent = '✓ 確定済み - もう一度Enterで送信';
+            statusIndicator.style.color = '#28a745';
+            statusIndicator.style.display = 'block';
+        }
+    } else {
+        chatInput.style.borderColor = '';
+        chatInput.style.borderWidth = '';
+        if (statusIndicator) {
+            statusIndicator.style.display = 'none';
+        }
+    }
 }
 
 // AIレスポンス取得（新しいプロンプト生成ロジック）
@@ -291,12 +391,17 @@ ${comm.verbal_style}な話し方で、${comm.emotional_expression}な感情表�
 質問: ${userMessage}`;
 }
 
-// メッセージ送信（既存のコードをそのまま使用）
+// メッセージ送信
 async function sendMessage() {
+    console.log('sendMessage関数が呼び出されました');
+    
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     
-    if (!chatInput || !sendBtn) return;
+    if (!chatInput || !sendBtn) {
+        console.error('必要な要素が見つかりません:', { chatInput, sendBtn });
+        return;
+    }
 
     const message = chatInput.value.trim();
     if (!message) {
@@ -308,6 +413,8 @@ async function sendMessage() {
         showErrorMessage('ペルソナまたは調査目的が設定されていません。');
         return;
     }
+
+    console.log('メッセージ送信開始:', message);
 
     // UI更新
     sendBtn.disabled = true;
@@ -360,7 +467,343 @@ async function sendMessage() {
     }
 }
 
-// 以下、既存のchat.jsから必要な関数をコピー（省略）
-// updateCharCount, handleEnterKey, confirmInput, resetInputConfirmedState, 
-// updateInputStatus, addMessageToChat, showLoadingOverlay, hideLoadingOverlay,
-// showErrorMessage, showSuccessMessage, etc...
+// チャットにメッセージを追加
+function addMessageToChat(sender, message) {
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
+    // ウェルカムメッセージを削除
+    const welcomeMessage = chatMessages.querySelector('.welcome-message');
+    if (welcomeMessage) {
+        welcomeMessage.remove();
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+
+    const bubbleDiv = document.createElement('div');
+    bubbleDiv.className = 'message-bubble';
+    bubbleDiv.textContent = message;
+
+    const metaDiv = document.createElement('div');
+    metaDiv.className = 'message-meta';
+    metaDiv.textContent = new Date().toLocaleTimeString('ja-JP', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    messageDiv.appendChild(bubbleDiv);
+    messageDiv.appendChild(metaDiv);
+    chatMessages.appendChild(messageDiv);
+
+    // スクロール
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// サイドバー関連のイベントリスナー設定
+function setupSidebarListeners() {
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+    const sidebar = document.getElementById('sidebar');
+
+    if (toggleSidebarBtn) {
+        toggleSidebarBtn.addEventListener('click', toggleSidebar);
+    }
+
+    if (closeSidebarBtn) {
+        closeSidebarBtn.addEventListener('click', closeSidebar);
+    }
+
+    // サイドバー外クリックで閉じる
+    document.addEventListener('click', function(e) {
+        if (sidebar && sidebar.classList.contains('open') && 
+            !sidebar.contains(e.target) && 
+            !toggleSidebarBtn.contains(e.target)) {
+            closeSidebar();
+        }
+    });
+}
+
+// エクスポート関連のイベントリスナー設定
+function setupExportListeners() {
+    const exportToExcelBtn = document.getElementById('exportToExcelBtn');
+    if (exportToExcelBtn) {
+        exportToExcelBtn.addEventListener('click', () => {
+            const exportManager = new ExportManager();
+            exportManager.exportToCSV();
+        });
+    }
+}
+
+// 履歴関連のイベントリスナー設定
+function setupHistoryListeners() {
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    if (clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', clearChatHistory);
+    }
+}
+
+// サイドバー表示/非表示
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('open');
+    }
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.remove('open');
+    }
+}
+
+// 履歴関連
+function loadChatHistory() {
+    try {
+        const saved = localStorage.getItem('chatHistory');
+        if (saved) {
+            chatHistory = JSON.parse(saved);
+        }
+        updateHistoryDisplay();
+    } catch (error) {
+        console.warn('履歴の読み込みに失敗:', error);
+        chatHistory = [];
+    }
+}
+
+function saveChatHistory() {
+    try {
+        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+    } catch (error) {
+        console.warn('履歴の保存に失敗:', error);
+    }
+}
+
+function updateHistoryDisplay() {
+    const historyList = document.getElementById('historyList');
+    if (!historyList) return;
+
+    historyList.innerHTML = '';
+
+    if (chatHistory.length === 0) {
+        historyList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">まだ対話履歴がありません</p>';
+        return;
+    }
+
+    chatHistory.slice().reverse().forEach(item => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+            <div class="history-item-question">${truncateText(item.question, 50)}</div>
+            <div class="history-item-preview">${truncateText(item.answer, 80)}</div>
+            <div class="history-item-time">${new Date(item.timestamp).toLocaleString('ja-JP')}</div>
+        `;
+
+        historyItem.addEventListener('click', () => {
+            showHistoryDetail(item);
+        });
+
+        historyList.appendChild(historyItem);
+    });
+}
+
+function clearChatHistory() {
+    if (confirm('本当に対話履歴をクリアしますか？この操作は取り消せません。')) {
+        chatHistory = [];
+        saveChatHistory();
+        updateHistoryDisplay();
+        showSuccessMessage('対話履歴をクリアしました。');
+    }
+}
+
+// ExportManagerクラス
+class ExportManager {
+    exportToCSV() {
+        if (chatHistory.length === 0) {
+            showErrorMessage('エクスポートする履歴がありません。');
+            return;
+        }
+
+        try {
+            // CSVヘッダー
+            const headers = [
+                'タイムスタンプ',
+                'ペルソナ名',
+                'ペルソナID',
+                '調査目的',
+                '質問',
+                '回答'
+            ];
+
+            // CSVデータ作成
+            const csvData = [headers];
+            
+            chatHistory.forEach(item => {
+                const row = [
+                    new Date(item.timestamp).toLocaleString('ja-JP'),
+                    item.personaName || currentPersona?.name || '',
+                    item.personaId || currentPersona?.id || '',
+                    item.purposeName || currentPurpose?.name || '',
+                    this.escapeCsvValue(item.question || ''),
+                    this.escapeCsvValue(item.answer || '')
+                ];
+                csvData.push(row);
+            });
+
+            // CSV文字列に変換
+            const csvString = csvData.map(row => row.join(',')).join('\n');
+            
+            // BOMを追加してUTF-8エンコーディングを明示
+            const bom = '\uFEFF';
+            const blob = new Blob([bom + csvString], {
+                type: 'text/csv;charset=utf-8'
+            });
+
+            // ダウンロード実行
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chat-history-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showSuccessMessage(`${chatHistory.length}件の履歴をCSV形式でエクスポートしました。`);
+
+        } catch (error) {
+            console.error('CSV エクスポート エラー:', error);
+            showErrorMessage('CSVエクスポートに失敗しました: ' + error.message);
+        }
+    }
+
+    // CSV用の値をエスケープ
+    escapeCsvValue(value) {
+        if (value === null || value === undefined) {
+            return '';
+        }
+        
+        const stringValue = String(value);
+        
+        // ダブルクォート、カンマ、改行が含まれている場合はエスケープが必要
+        if (stringValue.includes('"') || stringValue.includes(',') || stringValue.includes('\n') || stringValue.includes('\r')) {
+            // ダブルクォートを二重にしてエスケープし、全体をダブルクォートで囲む
+            return '"' + stringValue.replace(/"/g, '""') + '"';
+        }
+        
+        return stringValue;
+    }
+}
+
+// APIキーの状態をチェックして入力フィールドを非表示にする
+async function checkApiKeysAndHideInputs() {
+    try {
+        const response = await fetch('/api?action=get_api_keys');
+        if (response.ok) {
+            const hasKeys = await response.json();
+            
+            // いずれかのAPIキーが設定されている場合は入力フィールドを非表示
+            if (hasKeys.openai || hasKeys.claude || hasKeys.gemini) {
+                const apiKeySection = document.querySelector('.api-key-section');
+                if (apiKeySection) {
+                    apiKeySection.style.display = 'none';
+                }
+                
+                // 設定済みメッセージを表示
+                const settingsMessage = document.createElement('div');
+                settingsMessage.className = 'settings-message';
+                settingsMessage.innerHTML = `
+                    <p>✅ APIキーが設定済みです</p>
+                    <a href="/" class="btn btn-secondary btn-sm">LLM設定変更</a>
+                `;
+                settingsMessage.style.cssText = `
+                    background: #d4edda;
+                    color: #155724;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin-bottom: 20px;
+                    text-align: center;
+                `;
+                
+                const chatContainer = document.querySelector('.chat-container');
+                if (chatContainer) {
+                    chatContainer.insertBefore(settingsMessage, chatContainer.firstChild);
+                }
+            }
+        }
+    } catch (error) {
+        console.log('Failed to check API keys:', error);
+    }
+}
+
+// ユーティリティ関数
+function truncateText(text, maxLength) {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+}
+
+function showHistoryDetail(item) {
+    // 履歴詳細表示のモーダルを実装
+    alert(`質問: ${item.question}\\n\\n回答: ${item.answer}`);
+}
+
+function showLoadingOverlay(message = 'AI が回答を生成中...') {
+    const overlay = document.getElementById('loadingOverlay');
+    const messageElement = document.getElementById('loadingMessage');
+    if (overlay) {
+        if (messageElement) {
+            messageElement.textContent = message;
+        }
+        overlay.style.display = 'flex';
+    }
+}
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+}
+
+function showErrorMessage(message) {
+    showMessage(message, 'error');
+}
+
+function showSuccessMessage(message) {
+    showMessage(message, 'success');
+}
+
+function showMessage(message, type) {
+    const existingMessage = document.querySelector('.toast-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'toast-message';
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 1001;
+        animation: slideIn 0.3s ease-out;
+        max-width: 400px;
+        word-wrap: break-word;
+        ${type === 'error' ? 'background: #dc3545;' : 'background: #28a745;'}
+    `;
+    messageDiv.textContent = message;
+
+    document.body.appendChild(messageDiv);
+
+    setTimeout(() => {
+        if (messageDiv.parentNode) {
+            messageDiv.style.animation = 'slideOut 0.3s ease-in';
+            setTimeout(() => messageDiv.remove(), 300);
+        }
+    }, 3000);
+}
