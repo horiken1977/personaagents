@@ -124,8 +124,8 @@ export default function Home() {
     try {
       // 調査目的とペルソナデータを並行して読み込み
       const [purposesRes, personasRes] = await Promise.all([
-        fetch('/interview_purposes.json'),
-        fetch('/personas_new.json')
+        fetch('/personas/setting/interview_purposes.json'),
+        fetch('/personas/persona/north_america_consumers.json')
       ]);
       
       const purposesData = await purposesRes.json();

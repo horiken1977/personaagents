@@ -58,9 +58,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (action === 'get_categories') {
-      // personas_new.jsonから読み込み
+      // north_america_consumers.jsonから読み込み
       try {
-        const personas = await import('@/public/personas_new.json');
+        const personas = await import('@/personas/persona/north_america_consumers.json');
         if (personas.default && personas.default.categories) {
           return NextResponse.json(personas.default.categories);
         } else {
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     if (action === 'get_purposes') {
       // interview_purposes.jsonから読み込み
       try {
-        const purposes = await import('@/public/interview_purposes.json');
+        const purposes = await import('@/personas/setting/interview_purposes.json');
         if (purposes.default && purposes.default.purposes) {
           return NextResponse.json(purposes.default.purposes);
         } else {
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
       }
 
       try {
-        const personas = await import('@/public/personas_new.json');
+        const personas = await import('@/personas/persona/north_america_consumers.json');
         if (personas.default && personas.default.categories) {
           const category = personas.default.categories.find((c: any) => c.id === categoryId);
           if (category) {

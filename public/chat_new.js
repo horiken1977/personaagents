@@ -40,8 +40,8 @@ async function loadDataFromUrl() {
     try {
         // ペルソナと調査目的を並行して読み込み
         const [personasRes, purposesRes] = await Promise.all([
-            fetch('personas_new.json'),
-            fetch('interview_purposes.json')
+            fetch('personas/persona/north_america_consumers.json'),
+            fetch('personas/setting/interview_purposes.json')
         ]);
         
         const personasData = await personasRes.json();
