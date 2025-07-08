@@ -17,12 +17,21 @@ interface Persona {
   id: number;
   name: string;
   age: number;
-  background: string;
-  interests: string[];
-  shopping_habits: string;
-  decision_factors: string[];
-  communication_style: string;
-  avatar: string;
+  segment: string;
+  location: string;
+  household_income: string;
+  family_status: string;
+  cooking_frequency: string;
+  health_concerns: string;
+  shopping_behavior: string;
+  food_preferences: string;
+  technology_usage: string;
+  condiment_usage: string;
+  price_sensitivity: string;
+  key_motivations: string;
+  pain_points: string;
+  japanese_food_exposure: string;
+  purchase_drivers: string;
 }
 
 export default function Home() {
@@ -208,21 +217,24 @@ export default function Home() {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-                    <div style={{ fontSize: '3rem', marginRight: '1rem' }}>{persona.avatar}</div>
+                    <div style={{ fontSize: '3rem', marginRight: '1rem' }}>👤</div>
                     <div>
                       <h3 style={{ margin: 0, fontSize: '1.3rem', color: '#333' }}>{persona.name}</h3>
-                      <p style={{ margin: '0.25rem 0 0', color: '#666' }}>{persona.age}歳</p>
+                      <p style={{ margin: '0.25rem 0 0', color: '#666' }}>{persona.age}歳・{persona.segment}</p>
                     </div>
                   </div>
                   <p style={{ color: '#555', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: 1.5 }}>
-                    {persona.background}
+                    {persona.location} | {persona.family_status}
                   </p>
                   <div style={{ marginBottom: '1rem' }}>
                     <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
-                      <strong>興味・関心:</strong> {persona.interests.join(', ')}
+                      <strong>料理頻度:</strong> {persona.cooking_frequency}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
+                      <strong>食品嗜好:</strong> {persona.food_preferences}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#666' }}>
-                      <strong>コミュニケーション:</strong> {persona.communication_style}
+                      <strong>重視点:</strong> {persona.key_motivations}
                     </div>
                   </div>
                   <button
