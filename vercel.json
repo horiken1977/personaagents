@@ -16,8 +16,6 @@
     }
   ],
   "env": {
-    "OPENAI_API_KEY": "@openai_api_key",
-    "ANTHROPIC_API_KEY": "@anthropic_api_key",
-    "GOOGLE_AI_API_KEY": "@google_ai_api_key"
+    "PHP_CLI_SERVER_WORKERS": "4"
   }
 }
