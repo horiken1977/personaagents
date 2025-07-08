@@ -388,6 +388,8 @@ function createEnhancedPersonaPrompt(userMessage) {
 上記の人物設定に基づいて、以下の質問に対して${currentPersona.name}として自然に回答してください。
 ${comm.verbal_style}な話し方で、${comm.emotional_expression}な感情表現を心がけてください。
 
+【重要】回答は必ず日本語で行ってください。あなたがアメリカ人であっても、このインタビューは日本語で実施されているため、すべての回答を日本語で答えてください。
+
 質問: ${userMessage}`;
 }
 
