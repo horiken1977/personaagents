@@ -145,7 +145,15 @@
             console.log('インラインScript: 戻るボタン要素を確認:', backBtn);
             if (backBtn) {
                 console.log('インラインScript: 戻るボタンのイベントリスナー設定中');
-                backBtn.addEventListener('click', function() {
+                
+                // 既存のイベントリスナーを削除してからインラインスクリプトを優先
+                const newBackBtn = backBtn.cloneNode(true);
+                backBtn.parentNode.replaceChild(newBackBtn, backBtn);
+                
+                newBackBtn.addEventListener('click', function(e) {
+                    e.preventDefault(); // デフォルト動作を停止
+                    e.stopImmediatePropagation(); // 他のイベントリスナーを停止
+                    
                     // URLパラメータからcategoryIdを取得
                     const urlParams = new URLSearchParams(window.location.search);
                     const categoryId = urlParams.get('categoryId');
@@ -165,6 +173,8 @@
                         window.location.href = '/';
                     }
                 });
+                
+                console.log('インラインScript: 戻るボタンのイベントリスナー設定完了');
             }
             
             // JSON履歴エクスポートボタンは削除済み
