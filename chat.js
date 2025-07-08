@@ -1,10 +1,12 @@
 // チャット画面の状態管理
+console.log('chat.js読み込み開始');
 let currentPersona = null;
 let chatHistory = [];
 let isInputConfirmed = false; // 入力確定状態を管理
 
 // DOM読み込み完了時の初期化
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded イベント発火');
     initializeChat();
     loadPersonaFromUrl();
     initializeEventListeners();
@@ -123,7 +125,9 @@ function initializeEventListeners() {
 
     // 戻るボタン
     const backBtn = document.getElementById('backBtn');
+    console.log('戻るボタン要素:', backBtn);
     if (backBtn) {
+        console.log('戻るボタンのイベントリスナー設定中');
         backBtn.addEventListener('click', () => {
             // URLパラメータからcategoryIdを取得
             const urlParams = new URLSearchParams(window.location.search);
