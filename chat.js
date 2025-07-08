@@ -125,7 +125,17 @@ function initializeEventListeners() {
     const backBtn = document.getElementById('backBtn');
     if (backBtn) {
         backBtn.addEventListener('click', () => {
-            window.location.href = '/';
+            // URLパラメータからcategoryIdを取得
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoryId = urlParams.get('categoryId');
+            
+            if (categoryId) {
+                // カテゴリが指定されている場合、そのカテゴリのペルソナ一覧に戻る
+                window.location.href = `/?category=${categoryId}`;
+            } else {
+                // カテゴリが指定されていない場合、カテゴリ選択画面に戻る
+                window.location.href = '/';
+            }
         });
     }
 
