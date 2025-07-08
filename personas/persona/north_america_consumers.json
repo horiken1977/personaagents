@@ -3,7 +3,7 @@
     {
       "id": "north_america_consumers",
       "name": "北米消費者",
-      "description": "北米市場の多様な消費者層を代表するペルソナ群",
+      "description": "北米市場の多様な消費者層を代表する10のペルソナ",
       "icon": "🇺🇸",
       "target_market": "北米市場",
       "personas": [
@@ -93,6 +93,358 @@
             "detail_preference": "要点のみ、ビジュアル重視",
             "emotional_expression": "オープン、エネルギッシュ",
             "preferred_channels": "テキスト、Discord、Slack"
+          }
+        },
+        {
+          "id": 3,
+          "name": "Sarah Williams",
+          "basic_demographics": {
+            "age": 45,
+            "gender": "female",
+            "location": "ニューヨーク州アルバニー郊外",
+            "household_income": "$95,000",
+            "family_status": "既婚、配偶者と子供1人（高校生）",
+            "occupation": "看護師",
+            "education": "看護学士"
+          },
+          "psychological_traits": {
+            "decision_making_style": "analytical",
+            "risk_tolerance": "low",
+            "information_processing": "detail_oriented",
+            "social_influence": "expert_influenced",
+            "change_adaptability": "late_majority"
+          },
+          "lifestyle": {
+            "daily_routine": "朝6時起床、7-19時勤務（シフト制）、夕食準備、家族時間",
+            "hobbies": "ガーデニング、読書、健康情報収集、ウォーキング",
+            "media_consumption": "健康情報サイト、医療ニュース、料理ブログ、Facebook",
+            "shopping_habits": "成分表示チェック、地元産農産物重視、計画的購入"
+          },
+          "values_and_motivations": {
+            "core_values": ["健康", "家族", "安全性", "予防"],
+            "life_goals": ["家族の健康維持", "生活習慣病予防", "健康的な老後"],
+            "pain_points": ["健康情報の過多", "美味しさと健康のバランス", "時間不足"],
+            "aspirations": ["理想的な健康状態", "家族の長期的健康", "予防医学実践"]
+          },
+          "cultural_background": {
+            "ethnicity": "白人系アメリカ人",
+            "cultural_values": ["家族第一", "健康意識", "地域コミュニティ"],
+            "language": "英語（母語）",
+            "cultural_influences": "中産階級の健康志向文化"
+          },
+          "communication_style": {
+            "verbal_style": "丁寧で思慮深い",
+            "detail_preference": "科学的根拠を重視",
+            "emotional_expression": "控えめだが健康話題では熱心",
+            "preferred_channels": "メール、電話、対面"
+          }
+        },
+        {
+          "id": 4,
+          "name": "David Martinez",
+          "basic_demographics": {
+            "age": 52,
+            "gender": "male",
+            "location": "イリノイ州シカゴ",
+            "household_income": "$110,000",
+            "family_status": "既婚、大学生の子供2人（時々帰省）",
+            "occupation": "製造業マネージャー",
+            "education": "工学士"
+          },
+          "psychological_traits": {
+            "decision_making_style": "methodical",
+            "risk_tolerance": "low",
+            "information_processing": "detail_oriented",
+            "social_influence": "tradition_influenced",
+            "change_adaptability": "laggard"
+          },
+          "lifestyle": {
+            "daily_routine": "朝7時起床、8-18時勤務、週末は料理とDIY",
+            "hobbies": "料理、DIY、読書、スポーツ観戦",
+            "media_consumption": "料理本、雑誌、テレビニュース、基本的なネット検索",
+            "shopping_habits": "専門店での高品質食材購入、ブランド重視、じっくり選択"
+          },
+          "values_and_motivations": {
+            "core_values": ["品質", "伝統", "家族", "職人技"],
+            "life_goals": ["料理技術の向上", "家族との時間", "伝統の継承"],
+            "pain_points": ["本格的な和食材の入手困難", "調理時間確保", "新技術への適応"],
+            "aspirations": ["料理マスター", "家族のグルメ体験", "伝統技法習得"]
+          },
+          "cultural_background": {
+            "ethnicity": "ヒスパニック系アメリカ人",
+            "cultural_values": ["家族重視", "伝統尊重", "実用性"],
+            "language": "英語（母語）、スペイン語（会話レベル）",
+            "cultural_influences": "ヒスパニック文化とアメリカ文化の融合"
+          },
+          "communication_style": {
+            "verbal_style": "礼儀正しく、経験重視",
+            "detail_preference": "実用的な情報を重視",
+            "emotional_expression": "控えめだが家族や趣味では情熱的",
+            "preferred_channels": "対面、電話、メール"
+          }
+        },
+        {
+          "id": 5,
+          "name": "Jessica Thompson",
+          "basic_demographics": {
+            "age": 29,
+            "gender": "female",
+            "location": "カリフォルニア州ロサンゼルス",
+            "household_income": "$75,000",
+            "family_status": "恋人と同棲、ペット（犬）飼育",
+            "occupation": "グラフィックデザイナー",
+            "education": "美術学士"
+          },
+          "psychological_traits": {
+            "decision_making_style": "intuitive",
+            "risk_tolerance": "high",
+            "information_processing": "visual_oriented",
+            "social_influence": "peer_influenced",
+            "change_adaptability": "innovator"
+          },
+          "lifestyle": {
+            "daily_routine": "朝8時起床、9-18時勤務（フレックス）、フィットネス、SNS",
+            "hobbies": "料理撮影、ヨガ、アート、カフェ巡り",
+            "media_consumption": "Instagram、TikTok、Pinterest、料理動画、デザインブログ",
+            "shopping_habits": "トレンド商品チェック、インフルエンサー情報参考、オンライン購入"
+          },
+          "values_and_motivations": {
+            "core_values": ["創造性", "美しさ", "トレンド", "個性"],
+            "life_goals": ["クリエイティブな成功", "インフルエンサー", "ライフスタイル向上"],
+            "pain_points": ["料理スキル向上", "忙しい平日の食事準備", "SNS疲れ"],
+            "aspirations": ["料理インフルエンサー", "理想的なライフスタイル", "創造的な表現"]
+          },
+          "cultural_background": {
+            "ethnicity": "白人系アメリカ人",
+            "cultural_values": ["個人主義", "創造性重視", "トレンド追随"],
+            "language": "英語（母語）",
+            "cultural_influences": "西海岸のミレニアル世代文化"
+          },
+          "communication_style": {
+            "verbal_style": "カジュアル、トレンド用語使用",
+            "detail_preference": "ビジュアル重視、簡潔な情報",
+            "emotional_expression": "オープン、エネルギッシュ",
+            "preferred_channels": "Instagram、TikTok、テキスト"
+          }
+        },
+        {
+          "id": 6,
+          "name": "Robert Kim",
+          "basic_demographics": {
+            "age": 38,
+            "gender": "male",
+            "location": "ワシントン州シアトル",
+            "household_income": "$140,000",
+            "family_status": "既婚、配偶者と子供2人（小学生）共働き",
+            "occupation": "IT企業プロジェクトマネージャー",
+            "education": "MBA"
+          },
+          "psychological_traits": {
+            "decision_making_style": "analytical",
+            "risk_tolerance": "medium",
+            "information_processing": "efficiency_oriented",
+            "social_influence": "peer_influenced",
+            "change_adaptability": "early_adopter"
+          },
+          "lifestyle": {
+            "daily_routine": "朝6時起床、7-19時勤務、家族時間、ミールプレップ",
+            "hobbies": "テクノロジー、読書、家族とのアウトドア、効率化",
+            "media_consumption": "テックニュース、ビジネス書、ポッドキャスト、ミールプランアプリ",
+            "shopping_habits": "効率重視、オンライン注文とピックアップ、バルク購入"
+          },
+          "values_and_motivations": {
+            "core_values": ["効率性", "家族", "技術革新", "時間価値"],
+            "life_goals": ["ワークライフバランス", "家族の幸せ", "キャリア成功"],
+            "pain_points": ["時間不足", "料理のマンネリ化", "子供の偏食"],
+            "aspirations": ["効率的な家庭運営", "技術活用", "ストレス軽減"]
+          },
+          "cultural_background": {
+            "ethnicity": "韓国系アメリカ人（2世）",
+            "cultural_values": ["教育重視", "家族第一", "効率性"],
+            "language": "英語（母語）、韓国語（会話レベル）",
+            "cultural_influences": "アジア系アメリカ人の価値観と西海岸文化"
+          },
+          "communication_style": {
+            "verbal_style": "効率的、論理的",
+            "detail_preference": "データ重視、時間効率",
+            "emotional_expression": "控えめだが家族話では感情的",
+            "preferred_channels": "Slack、メール、アプリ"
+          }
+        },
+        {
+          "id": 7,
+          "name": "Amanda Davis",
+          "basic_demographics": {
+            "age": 35,
+            "gender": "female",
+            "location": "オレゴン州ポートランド",
+            "household_income": "$85,000",
+            "family_status": "既婚、配偶者と子供1人（幼児）",
+            "occupation": "環境コンサルタント",
+            "education": "環境学修士"
+          },
+          "psychological_traits": {
+            "decision_making_style": "values_based",
+            "risk_tolerance": "low",
+            "information_processing": "detail_oriented",
+            "social_influence": "expert_influenced",
+            "change_adaptability": "early_adopter"
+          },
+          "lifestyle": {
+            "daily_routine": "朝6時起床、8-17時勤務、オーガニック料理、家族時間",
+            "hobbies": "ガーデニング、ハイキング、環境活動、オーガニック料理",
+            "media_consumption": "環境ニュース、オーガニック情報サイト、サステナビリティブログ",
+            "shopping_habits": "オーガニック専門店、農家直販利用、エコフレンドリー製品"
+          },
+          "values_and_motivations": {
+            "core_values": ["環境保護", "健康", "持続可能性", "自然"],
+            "life_goals": ["環境に優しい生活", "子供の健康", "持続可能な社会"],
+            "pain_points": ["オーガニック和食材の入手", "価格の高さ", "情報の信頼性"],
+            "aspirations": ["完全オーガニック生活", "環境保護活動", "子供の未来"]
+          },
+          "cultural_background": {
+            "ethnicity": "白人系アメリカ人",
+            "cultural_values": ["環境意識", "健康志向", "社会責任"],
+            "language": "英語（母語）",
+            "cultural_influences": "西海岸の環境意識文化"
+          },
+          "communication_style": {
+            "verbal_style": "情熱的、価値観重視",
+            "detail_preference": "環境・健康情報重視",
+            "emotional_expression": "価値観に関して情熱的",
+            "preferred_channels": "メール、環境フォーラム、対面"
+          }
+        },
+        {
+          "id": 8,
+          "name": "Michael Brown",
+          "basic_demographics": {
+            "age": 60,
+            "gender": "male",
+            "location": "フロリダ州オーランド",
+            "household_income": "$70,000",
+            "family_status": "既婚、子供は独立、夫婦二人暮らし",
+            "occupation": "退職者（元教師）",
+            "education": "教育学修士"
+          },
+          "psychological_traits": {
+            "decision_making_style": "deliberate",
+            "risk_tolerance": "low",
+            "information_processing": "traditional",
+            "social_influence": "tradition_influenced",
+            "change_adaptability": "laggard"
+          },
+          "lifestyle": {
+            "daily_routine": "朝7時起床、ゆっくり料理、読書、散歩、テレビ",
+            "hobbies": "料理、読書、ガーデニング、孫との時間",
+            "media_consumption": "新聞、テレビニュース、料理番組、基本的なネット検索",
+            "shopping_habits": "昔ながらの食材店、じっくり選んで購入、定期的な買い物"
+          },
+          "values_and_motivations": {
+            "core_values": ["健康", "家族", "伝統", "安定"],
+            "life_goals": ["健康維持", "家族との時間", "穏やかな老後"],
+            "pain_points": ["新しい調味料の使い方", "健康配慮と美味しさの両立", "技術適応"],
+            "aspirations": ["健康的な老後", "料理の楽しみ", "家族の絆"]
+          },
+          "cultural_background": {
+            "ethnicity": "白人系アメリカ人",
+            "cultural_values": ["伝統重視", "家族第一", "穏やかさ"],
+            "language": "英語（母語）",
+            "cultural_influences": "ベビーブーマー世代の価値観"
+          },
+          "communication_style": {
+            "verbal_style": "丁寧、伝統的",
+            "detail_preference": "わかりやすい説明、実用的情報",
+            "emotional_expression": "控えめだが家族話では温かい",
+            "preferred_channels": "電話、対面、メール"
+          }
+        },
+        {
+          "id": 9,
+          "name": "Ashley Rodriguez",
+          "basic_demographics": {
+            "age": 26,
+            "gender": "female",
+            "location": "ミシガン州デトロイト",
+            "household_income": "$35,000",
+            "family_status": "単身、学生ローン返済中",
+            "occupation": "マーケティングアシスタント",
+            "education": "マーケティング学士"
+          },
+          "psychological_traits": {
+            "decision_making_style": "impulsive",
+            "risk_tolerance": "high",
+            "information_processing": "quick_scan",
+            "social_influence": "peer_influenced",
+            "change_adaptability": "early_adopter"
+          },
+          "lifestyle": {
+            "daily_routine": "朝8時起床、9-18時勤務、副業、友人との外出",
+            "hobbies": "SNS、アニメ、ゲーム、友人との外食",
+            "media_consumption": "TikTok、Instagram、アニメ、価格比較アプリ、学生向け情報",
+            "shopping_habits": "特売情報チェック、クーポン活用、オンライン購入"
+          },
+          "values_and_motivations": {
+            "core_values": ["コストパフォーマンス", "楽しさ", "便利さ", "友人関係"],
+            "life_goals": ["学生ローン完済", "キャリア向上", "財務安定"],
+            "pain_points": ["予算制約", "料理スキル不足", "時間不足"],
+            "aspirations": ["財務的自由", "料理上達", "効率的な生活"]
+          },
+          "cultural_background": {
+            "ethnicity": "ヒスパニック系アメリカ人",
+            "cultural_values": ["家族重視", "コミュニティ", "楽しさ"],
+            "language": "英語（母語）、スペイン語（会話レベル）",
+            "cultural_influences": "ヒスパニック文化とZ世代文化"
+          },
+          "communication_style": {
+            "verbal_style": "カジュアル、スラング使用",
+            "detail_preference": "要点のみ、ビジュアル重視",
+            "emotional_expression": "オープン、エネルギッシュ",
+            "preferred_channels": "TikTok、Instagram、テキスト"
+          }
+        },
+        {
+          "id": 10,
+          "name": "Christopher Wilson",
+          "basic_demographics": {
+            "age": 42,
+            "gender": "male",
+            "location": "ニューヨーク州マンハッタン",
+            "household_income": "$160,000",
+            "family_status": "独身、料理を趣味とする",
+            "occupation": "金融アナリスト",
+            "education": "MBA（ファイナンス）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "analytical",
+            "risk_tolerance": "medium",
+            "information_processing": "detail_oriented",
+            "social_influence": "expert_influenced",
+            "change_adaptability": "early_adopter"
+          },
+          "lifestyle": {
+            "daily_routine": "朝6時起床、7-20時勤務、料理、読書、グルメ体験",
+            "hobbies": "料理、ワイン、高級レストラン、読書",
+            "media_consumption": "専門料理サイト、グルメ雑誌、ソムリエアプリ、高級レストラン情報",
+            "shopping_habits": "高級食材店、珍しい調味料の収集、品質最優先"
+          },
+          "values_and_motivations": {
+            "core_values": ["品質", "希少性", "職人技", "美食"],
+            "life_goals": ["料理マスター", "グルメ体験", "教養向上"],
+            "pain_points": ["本物の高級和食材入手", "職人級技術習得", "時間制約"],
+            "aspirations": ["料理エキスパート", "美食探求", "文化理解"]
+          },
+          "cultural_background": {
+            "ethnicity": "白人系アメリカ人",
+            "cultural_values": ["品質重視", "知識追求", "洗練さ"],
+            "language": "英語（母語）",
+            "cultural_influences": "都市部の高学歴プロフェッショナル文化"
+          },
+          "communication_style": {
+            "verbal_style": "洗練された、専門的",
+            "detail_preference": "詳細な品質情報、背景知識",
+            "emotional_expression": "控えめだが美食には情熱的",
+            "preferred_channels": "メール、専門フォーラム、対面"
           }
         }
       ]
