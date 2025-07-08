@@ -156,7 +156,7 @@ export default function Home() {
   const selectPersona = (persona: Persona) => {
     setSelectedPersona(persona);
     // 選択されたLLMプロバイダーも含めてチャットページにリダイレクト
-    window.location.href = `/chat.html?personaId=${persona.id}&categoryId=${selectedCategory?.id}&llmProvider=${selectedLLM}`;
+    window.location.href = `/chat-new.html?personaId=${persona.id}&categoryId=${selectedCategory?.id}&llmProvider=${selectedLLM}`;
   };
 
   const goBack = () => {

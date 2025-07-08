@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIペルソナ対話 | 北米市場調査エージェント</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="chat.css">
+</head>
+<body>
+    <div class="chat-container">
+        <header class="chat-header">
+            <div class="persona-info">
+                <div class="persona-avatar-small" id="personaAvatar"></div>
+                <div class="persona-details">
+                    <h2 id="personaName">ペルソナ名</h2>
+                    <p id="personaDescription">ペルソナの詳細</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="exportToExcelBtn" class="btn btn-outline">
+                    <span class="icon">📋</span>
+                    エクセル形式でエクスポート
+                </button>
+                <button id="backBtn" class="btn btn-outline">
+                    <span class="icon">←</span>
+                    戻る
+                </button>
+            </div>
+        </header>
+
+        <main class="chat-main">
+            <div class="chat-messages" id="chatMessages">
+                <div class="welcome-message">
+                    <div class="welcome-content">
+                        <h3>対話を開始しましょう</h3>
+                        <p>選択したペルソナになりきって回答します。調味料の好み、購入意欲、価格感覚などについて自由に質問してください。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <textarea 
+                        id="chatInput" 
+                        placeholder="ペルソナに質問を入力してください...（Shift+Enterで改行、Enter2回で送信）"
+                        rows="3"
+                        maxlength="1000"
+                    ></textarea>
+                    <div class="input-status" id="inputStatus" style="display: none;">
+                        ✓ 確定済み - もう一度Enterで送信
+                    </div>
+                    <div class="input-actions">
+                        <span class="char-count">0/1000</span>
+                        <button id="sendBtn" class="btn btn-primary">
+                            <span class="icon">📤</span>
+                            送信
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- サイドパネル -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>対話履歴</h3>
+                <button id="closeSidebarBtn" class="btn-icon">×</button>
+            </div>
+            <div class="sidebar-content">
+                <div class="history-list" id="historyList">
+                    <!-- 履歴アイテムが動的に追加される -->
+                </div>
+                <div class="sidebar-actions">
+                    <button id="clearHistoryBtn" class="btn btn-outline-danger">
+                        履歴をクリア
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- フローティングアクション -->
+        <div class="floating-actions">
+            <button id="toggleSidebarBtn" class="btn-floating" title="履歴を表示">
+                <span class="icon">📋</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- エクスポート完了モーダル -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <h3>📋 エクスポート完了</h3>
+            <div class="modal-body">
+                <div id="exportResult">
+                    <p>チャット履歴をエクセル形式でエクスポートしました。</p>
+                </div>
+                <div class="export-info">
+                    <p><strong>エクスポートされる情報:</strong></p>
+                    <ul style="margin: 10px 0; padding-left: 20px; font-size: 14px;">
+                        <li>タイムスタンプ</li>
+                        <li>ユーザーID</li>
+                        <li>LLMプロバイダー</li>
+                        <li>ペルソナ名</li>
+                        <li>質問内容</li>
+                        <li>回答内容</li>
+                    </ul>
+                    <p style="font-size: 12px; color: #666;">※ 新しい対話がある場合のみエクスポートされます</p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="downloadFileBtn" class="btn btn-primary" disabled>ダウンロード</button>
+                <button id="closeExportBtn" class="btn btn-secondary">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ローディングオーバーレイ -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p id="loadingMessage">AI が回答を生成中...</p>
+    </div>
+
+    <script>
+        // シンプルなエクスポート機能
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Export functionality initialized');
+            
+            // エクスポート機能のイベントリスナー
+            const exportBtn = document.getElementById('exportToExcelBtn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', function() {
+                    // チャット履歴をCSV形式でエクスポート
+                    if (window.ExportManager) {
+                        const exportManager = new window.ExportManager();
+                        exportManager.exportToCSV();
+                    } else {
+                        console.warn('ExportManager not available');
+                    }
+                });
+            }
+
+            // 戻るボタンの機能を追加（chat.jsのバックアップ）
+            const backBtn = document.getElementById('backBtn');
+            console.log('インラインScript: 戻るボタン要素を確認:', backBtn);
+            if (backBtn) {
+                console.log('インラインScript: 戻るボタンのイベントリスナー設定中');
+                backBtn.addEventListener('click', function() {
+                    // URLパラメータからcategoryIdを取得
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const categoryId = urlParams.get('categoryId');
+                    
+                    console.log('インラインScript: 現在のチャット画面URL:', window.location.href);
+                    console.log('インラインScript: 全URLパラメータ:', window.location.search);
+                    console.log('インラインScript: 戻るボタンクリック, categoryId:', categoryId);
+                    
+                    if (categoryId) {
+                        // カテゴリが指定されている場合、そのカテゴリのペルソナ一覧に戻る
+                        const targetUrl = `/?category=${categoryId}`;
+                        console.log('インラインScript: リダイレクト先:', targetUrl);
+                        window.location.href = targetUrl;
+                    } else {
+                        // カテゴリが指定されていない場合、カテゴリ選択画面に戻る
+                        console.log('インラインScript: カテゴリ選択画面に戻る');
+                        window.location.href = '/';
+                    }
+                });
+            }
+            
+            // JSON履歴エクスポートボタンは削除済み
+        });
+        
+        // JSONエクスポート関数は削除済み - CSVエクスポートのみ利用可能
+    </script>
+    <script src="chat.js"></script>
+</body>
+</html>
