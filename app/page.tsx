@@ -56,18 +56,21 @@ export default function Home() {
   useEffect(() => {
     loadCategories();
     checkApiStatus();
-    
+  }, []);
+
+  useEffect(() => {
     // URLパラメータからカテゴリを取得して直接表示
     const urlParams = new URLSearchParams(window.location.search);
     const categoryParam = urlParams.get('category');
-    if (categoryParam) {
+    console.log('URLパラメータ category:', categoryParam);
+    
+    if (categoryParam && categories.length > 0) {
       // カテゴリが指定されている場合、そのカテゴリを選択状態にする
-      setTimeout(() => {
-        const category = categories.find(c => c.id === categoryParam);
-        if (category) {
-          setSelectedCategory(category);
-        }
-      }, 100);
+      const category = categories.find(c => c.id === categoryParam);
+      console.log('見つかったカテゴリ:', category);
+      if (category) {
+        setSelectedCategory(category);
+      }
     }
   }, [categories]);
 

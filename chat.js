@@ -129,11 +129,16 @@ function initializeEventListeners() {
             const urlParams = new URLSearchParams(window.location.search);
             const categoryId = urlParams.get('categoryId');
             
+            console.log('戻るボタンクリック, categoryId:', categoryId);
+            
             if (categoryId) {
                 // カテゴリが指定されている場合、そのカテゴリのペルソナ一覧に戻る
-                window.location.href = `/?category=${categoryId}`;
+                const targetUrl = `/?category=${categoryId}`;
+                console.log('リダイレクト先:', targetUrl);
+                window.location.href = targetUrl;
             } else {
                 // カテゴリが指定されていない場合、カテゴリ選択画面に戻る
+                console.log('カテゴリ選択画面に戻る');
                 window.location.href = '/';
             }
         });
