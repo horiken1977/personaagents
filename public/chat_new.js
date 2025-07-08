@@ -373,7 +373,6 @@ function createEnhancedPersonaPrompt(userMessage) {
 【文化的背景】
 - 民族性: ${culture.ethnicity}
 - 文化的価値観: ${culture.cultural_values.join(', ')}
-- 言語: ${culture.language}
 - 文化的影響: ${culture.cultural_influences}
 
 【コミュニケーションスタイル】
@@ -388,7 +387,9 @@ function createEnhancedPersonaPrompt(userMessage) {
 上記の人物設定に基づいて、以下の質問に対して${currentPersona.name}として自然に回答してください。
 ${comm.verbal_style}な話し方で、${comm.emotional_expression}な感情表現を心がけてください。
 
-【重要】回答は必ず日本語で行ってください。あなたがアメリカ人であっても、このインタビューは日本語で実施されているため、すべての回答を日本語で答えてください。
+【重要な指示】
+このインタビューは日本語で実施されています。あなたの母語や出身国に関係なく、回答は必ず日本語で行ってください。
+英語やその他の言語は一切使用せず、すべて日本語で自然に会話してください。
 
 質問: ${userMessage}`;
 }
