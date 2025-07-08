@@ -129,6 +129,8 @@ function initializeEventListeners() {
             const urlParams = new URLSearchParams(window.location.search);
             const categoryId = urlParams.get('categoryId');
             
+            console.log('現在のチャット画面URL:', window.location.href);
+            console.log('全URLパラメータ:', window.location.search);
             console.log('戻るボタンクリック, categoryId:', categoryId);
             
             if (categoryId) {

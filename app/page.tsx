@@ -62,7 +62,9 @@ export default function Home() {
     // URLパラメータからカテゴリを取得して直接表示
     const urlParams = new URLSearchParams(window.location.search);
     const categoryParam = urlParams.get('category');
+    console.log('現在のURL:', window.location.href);
     console.log('URLパラメータ category:', categoryParam);
+    console.log('利用可能なカテゴリ:', categories.map(c => c.id));
     
     if (categoryParam && categories.length > 0) {
       // カテゴリが指定されている場合、そのカテゴリを選択状態にする
