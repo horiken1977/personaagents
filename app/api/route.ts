@@ -58,9 +58,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (action === 'get_categories') {
-      // personas.jsonから読み込み
+      // personas_new.jsonから読み込み
       try {
-        const personas = await import('@/personas.json');
+        const personas = await import('@/public/personas_new.json');
         if (personas.default && personas.default.categories) {
           return NextResponse.json(personas.default.categories);
         } else {
@@ -71,6 +71,20 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    if (action === 'get_purposes') {
+      // interview_purposes.jsonから読み込み
+      try {
+        const purposes = await import('@/public/interview_purposes.json');
+        if (purposes.default && purposes.default.purposes) {
+          return NextResponse.json(purposes.default.purposes);
+        } else {
+          return NextResponse.json({ error: 'Invalid purposes data structure' }, { status: 500 });
+        }
+      } catch (error) {
+        return NextResponse.json({ error: 'Purposes data file not found' }, { status: 404 });
+      }
+    }
+
     if (action === 'get_personas') {
       const categoryId = searchParams.get('category');
       if (!categoryId) {
@@ -78,7 +92,7 @@ export async function GET(request: NextRequest) {
       }
 
       try {
-        const personas = await import('@/personas.json');
+        const personas = await import('@/public/personas_new.json');
         if (personas.default && personas.default.categories) {
           const category = personas.default.categories.find((c: any) => c.id === categoryId);
           if (category) {
