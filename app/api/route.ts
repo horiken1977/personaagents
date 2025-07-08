@@ -109,13 +109,23 @@ export async function GET(request: NextRequest) {
 // POSTリクエストの処理
 export async function POST(request: NextRequest) {
   try {
+    console.log('POST request received:', {
+      url: request.url,
+      method: request.method,
+      headers: Object.fromEntries(request.headers.entries())
+    });
+
     // レート制限チェック
     const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    console.log('Client IP:', clientIP);
+    
     if (!checkRateLimit(clientIP)) {
+      console.log('Rate limit exceeded for IP:', clientIP);
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
     }
 
     const body = await request.json();
+    console.log('Request body:', body);
 
     // 基本的な検証
     if (!body.provider || !body.prompt) {
@@ -169,13 +179,26 @@ export async function POST(request: NextRequest) {
       response: response,
       provider: body.provider,
       timestamp: new Date().toISOString()
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      }
     });
 
   } catch (error) {
     console.error('POST Error:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        }
+      }
     );
   }
 }
