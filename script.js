@@ -436,7 +436,7 @@ async function testApiConnection() {
     resultDiv.textContent = 'API接続をテスト中...';
     
     try {
-        const response = await fetch('api.php', {
+        const response = await fetch('/api', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -1,21 +1,22 @@
 {
   "version": 2,
   "functions": {
-    "api.php": {
-      "runtime": "vercel-php@0.6.0"
+    "api/**/*.php": {
+      "runtime": "vercel-php@0.7.0"
     }
   },
   "routes": [
     {
+      "src": "/api",
+      "dest": "/api/index.php"
+    },
+    {
       "src": "/api/(.*)",
-      "dest": "/api.php"
+      "dest": "/api/$1.php"
     },
     {
       "src": "/(.*)",
       "dest": "/$1"
     }
-  ],
-  "env": {
-    "PHP_CLI_SERVER_WORKERS": "4"
-  }
+  ]
 }

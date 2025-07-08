@@ -4,8 +4,8 @@
  * OpenAI、Claude、Gemini等のLLMプロバイダーとの統合を管理
  */
 
-require_once 'config.php';
-require_once 'security_headers.php';
+require_once '../config.php';
+require_once '../security_headers.php';
 
 // セキュリティヘッダーの設定
 initializeSecurity();
@@ -39,7 +39,7 @@ class LLMAPIHub {
                     return;
                 } elseif ($action === 'get_categories') {
                     // カテゴリデータの取得
-                    $personasFile = __DIR__ . '/personas.json';
+                    $personasFile = __DIR__ . '/../personas.json';
                     if (file_exists($personasFile)) {
                         $personasData = json_decode(file_get_contents($personasFile), true);
                         if ($personasData && isset($personasData['categories'])) {
@@ -58,7 +58,7 @@ class LLMAPIHub {
                         throw new Exception('Category ID is required', 400);
                     }
                     
-                    $personasFile = __DIR__ . '/personas.json';
+                    $personasFile = __DIR__ . '/../personas.json';
                     if (file_exists($personasFile)) {
                         $personasData = json_decode(file_get_contents($personasFile), true);
                         if ($personasData && isset($personasData['categories'])) {
@@ -351,7 +351,7 @@ class LLMAPIHub {
      */
     private function checkRateLimit($clientIP) {
         // 簡単なレート制限実装
-        $rateFile = __DIR__ . '/logs/rate_' . md5($clientIP) . '.txt';
+        $rateFile = __DIR__ . '/../logs/rate_' . md5($clientIP) . '.txt';
         $now = time();
         $requests = [];
         

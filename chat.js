@@ -317,7 +317,7 @@ async function getAIResponse(userMessage) {
         
         console.log('Request data:', requestData);
         
-        const response = await fetch('api.php', {
+        const response = await fetch('/api', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -580,7 +580,7 @@ class ExportManager {
 // APIキーの状態をチェックして入力フィールドを非表示にする
 async function checkApiKeysAndHideInputs() {
     try {
-        const response = await fetch('/api.php?action=get_api_keys');
+        const response = await fetch('/api?action=get_api_keys');
         if (response.ok) {
             const hasKeys = await response.json();
             
