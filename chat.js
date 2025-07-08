@@ -29,14 +29,25 @@ async function loadPersonaFromUrl() {
 
     if (!personaId) {
         showErrorMessage('ペルソナが選択されていません。');
-        setTimeout(() => window.location.href = 'index.html', 2000);
+        setTimeout(() => window.location.href = '/', 2000);
         return;
     }
 
     try {
         const response = await fetch('personas.json');
         const data = await response.json();
-        currentPersona = data.personas.find(p => p.id == personaId);
+        
+        // 新しいcategories構造から全てのペルソナを取得
+        let allPersonas = [];
+        if (data.categories) {
+            data.categories.forEach(category => {
+                if (category.personas) {
+                    allPersonas = allPersonas.concat(category.personas);
+                }
+            });
+        }
+        
+        currentPersona = allPersonas.find(p => p.id == personaId);
 
         if (!currentPersona) {
             throw new Error('ペルソナが見つかりません。');
@@ -52,7 +63,7 @@ async function loadPersonaFromUrl() {
     } catch (error) {
         console.error('ペルソナデータの読み込みに失敗:', error);
         showErrorMessage('ペルソナデータの読み込みに失敗しました。');
-        setTimeout(() => window.location.href = 'index.html', 2000);
+        setTimeout(() => window.location.href = '/', 2000);
     }
 }
 
@@ -114,7 +125,7 @@ function initializeEventListeners() {
     const backBtn = document.getElementById('backBtn');
     if (backBtn) {
         backBtn.addEventListener('click', () => {
-            window.location.href = 'index.html';
+            window.location.href = '/';
         });
     }
 

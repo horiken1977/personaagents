@@ -216,6 +216,16 @@ export async function POST(request: NextRequest) {
 
 // OpenAI API呼び出し
 async function callOpenAI(prompt: string, apiKey: string): Promise<string> {
+  console.log('OpenAI API call:', { 
+    hasApiKey: !!apiKey, 
+    apiKeyLength: apiKey ? apiKey.length : 0,
+    promptLength: prompt.length 
+  });
+
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error('OpenAI API key is missing or empty');
+  }
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -223,23 +233,55 @@ async function callOpenAI(prompt: string, apiKey: string): Promise<string> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 1000,
       temperature: 0.7,
     }),
   });
 
+  console.log('OpenAI API response status:', response.status);
+
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.status}`);
+    const errorText = await response.text();
+    console.error('OpenAI API error details:', errorText);
+    
+    let errorMessage = `OpenAI API error: ${response.status}`;
+    try {
+      const errorData = JSON.parse(errorText);
+      if (errorData.error && errorData.error.message) {
+        errorMessage += ` - ${errorData.error.message}`;
+      }
+    } catch (e) {
+      errorMessage += ` - ${errorText}`;
+    }
+    
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
+  console.log('OpenAI API response structure:', Object.keys(data));
+  
+  if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+    console.error('Unexpected OpenAI API response:', data);
+    throw new Error('Invalid response structure from OpenAI API');
+  }
+  
   return data.choices[0].message.content;
 }
 
 // Claude API呼び出し
 async function callClaude(prompt: string, apiKey: string): Promise<string> {
+  console.log('Claude API call:', { 
+    hasApiKey: !!apiKey, 
+    apiKeyLength: apiKey ? apiKey.length : 0,
+    promptLength: prompt.length 
+  });
+
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error('Claude API key is missing or empty');
+  }
+
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -248,23 +290,55 @@ async function callClaude(prompt: string, apiKey: string): Promise<string> {
       'anthropic-version': '2023-06-01'
     },
     body: JSON.stringify({
-      model: 'claude-3-sonnet-20240229',
+      model: 'claude-3-5-sonnet-20241022',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 1000,
       temperature: 0.7,
     }),
   });
 
+  console.log('Claude API response status:', response.status);
+
   if (!response.ok) {
-    throw new Error(`Claude API error: ${response.status}`);
+    const errorText = await response.text();
+    console.error('Claude API error details:', errorText);
+    
+    let errorMessage = `Claude API error: ${response.status}`;
+    try {
+      const errorData = JSON.parse(errorText);
+      if (errorData.error && errorData.error.message) {
+        errorMessage += ` - ${errorData.error.message}`;
+      }
+    } catch (e) {
+      errorMessage += ` - ${errorText}`;
+    }
+    
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
+  console.log('Claude API response structure:', Object.keys(data));
+  
+  if (!data.content || !data.content[0] || !data.content[0].text) {
+    console.error('Unexpected Claude API response:', data);
+    throw new Error('Invalid response structure from Claude API');
+  }
+  
   return data.content[0].text;
 }
 
 // Gemini API呼び出し
 async function callGemini(prompt: string, apiKey: string): Promise<string> {
+  console.log('Gemini API call:', { 
+    hasApiKey: !!apiKey, 
+    apiKeyLength: apiKey ? apiKey.length : 0,
+    promptLength: prompt.length 
+  });
+
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error('Gemini API key is missing or empty');
+  }
+
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: {
@@ -281,11 +355,33 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
     }),
   });
 
+  console.log('Gemini API response status:', response.status);
+
   if (!response.ok) {
-    throw new Error(`Gemini API error: ${response.status}`);
+    const errorText = await response.text();
+    console.error('Gemini API error details:', errorText);
+    
+    let errorMessage = `Gemini API error: ${response.status}`;
+    try {
+      const errorData = JSON.parse(errorText);
+      if (errorData.error && errorData.error.message) {
+        errorMessage += ` - ${errorData.error.message}`;
+      }
+    } catch (e) {
+      errorMessage += ` - ${errorText}`;
+    }
+    
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
+  console.log('Gemini API response structure:', Object.keys(data));
+  
+  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0] || !data.candidates[0].content.parts[0].text) {
+    console.error('Unexpected Gemini API response:', data);
+    throw new Error('Invalid response structure from Gemini API');
+  }
+  
   return data.candidates[0].content.parts[0].text;
 }
 
