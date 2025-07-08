@@ -25,57 +25,23 @@ function initializeChat() {
 
 // URLパラメータからペルソナと調査目的を読み込み
 async function loadDataFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const personaId = urlParams.get('personaId');
-    const purposeId = urlParams.get('purposeId');
-    const categoryId = urlParams.get('categoryId');
-    const llmProvider = urlParams.get('llmProvider');
-
-    console.log('URLパラメータ:', { personaId, purposeId, categoryId, llmProvider });
-
-    if (!personaId || !purposeId) {
-        showErrorMessage('ペルソナまたは調査目的が選択されていません。');
-        setTimeout(() => window.location.href = '/', 2000);
-        return;
-    }
-
     try {
-        // ペルソナと調査目的を並行して読み込み
-        const [personasRes, purposesRes] = await Promise.all([
-            fetch('personas/persona/north_america_consumers.json'),
-            fetch('personas/setting/interview_purposes.json')
-        ]);
+        // 共通ユーティリティを使用してデータを読み込み
+        const { persona, purpose, params } = await PersonaUtils.loadPersonaAndPurposeFromUrl();
         
-        const personasData = await personasRes.json();
-        const purposesData = await purposesRes.json();
+        currentPersona = persona;
+        currentPurpose = purpose;
         
-        // ペルソナを探す
-        let allPersonas = [];
-        if (personasData.categories) {
-            personasData.categories.forEach(category => {
-                if (category.personas) {
-                    allPersonas = allPersonas.concat(category.personas);
-                }
-            });
-        }
-        
-        currentPersona = allPersonas.find(p => p.id == personaId);
-        
-        // 調査目的を探す
-        currentPurpose = purposesData.purposes.find(p => p.id === purposeId);
-
         console.log('読み込まれたペルソナ:', currentPersona);
         console.log('読み込まれた調査目的:', currentPurpose);
-
-        if (!currentPersona || !currentPurpose) {
-            throw new Error('ペルソナまたは調査目的が見つかりません。');
-        }
-
-        updateDisplay();
+        console.log('URLパラメータ:', params);
+        
+        // 表示を更新
+        PersonaUtils.updatePersonaDisplay(currentPersona, currentPurpose);
         
         // LLMプロバイダーをセッションに保存
-        if (llmProvider) {
-            sessionStorage.setItem('llmProvider', llmProvider);
+        if (params.llmProvider) {
+            StorageUtils.saveToSessionStorage('llmProvider', params.llmProvider);
         }
 
         // 初期メッセージを表示
@@ -83,34 +49,17 @@ async function loadDataFromUrl() {
 
     } catch (error) {
         console.error('データの読み込みに失敗:', error);
-        showErrorMessage('データの読み込みに失敗しました。');
+        MessageUtils.showErrorMessage('データの読み込みに失敗しました。');
         setTimeout(() => window.location.href = '/', 2000);
     }
 }
 
-// 表示の更新
+// 表示の更新（共通ユーティリティに移行済み - PersonaUtils.updatePersonaDisplay使用）
+// この関数は後方互換性のため残しておく
 function updateDisplay() {
-    if (!currentPersona || !currentPurpose) return;
-
-    const personaAvatar = document.getElementById('personaAvatar');
-    const personaName = document.getElementById('personaName');
-    const personaDescription = document.getElementById('personaDescription');
-
-    if (personaAvatar) {
-        personaAvatar.textContent = getPersonaInitials(currentPersona.name);
+    if (PersonaUtils) {
+        PersonaUtils.updatePersonaDisplay(currentPersona, currentPurpose);
     }
-
-    if (personaName) {
-        personaName.textContent = `${currentPersona.name} - ${currentPurpose.name}`;
-    }
-
-    if (personaDescription) {
-        const demographics = currentPersona.basic_demographics;
-        personaDescription.textContent = `${demographics.age}歳 | ${demographics.occupation} | ${demographics.location}`;
-    }
-
-    // ページタイトルも更新
-    document.title = `${currentPersona.name} - ${currentPurpose.name} | インタビューAI`;
 }
 
 // ウェルカムメッセージを表示
@@ -136,13 +85,9 @@ function displayWelcomeMessage() {
     }
 }
 
-// ペルソナ名からイニシャルを取得
+// ペルソナ名からイニシャルを取得（共通ユーティリティに移行済み）
 function getPersonaInitials(name) {
-    return name.split(' ')
-                .map(word => word.charAt(0))
-                .join('')
-                .toUpperCase()
-                .substring(0, 2);
+    return PersonaUtils ? PersonaUtils.getPersonaInitials(name) : 'NA';
 }
 
 // イベントリスナーの初期化
@@ -204,22 +149,10 @@ function initializeEventListeners() {
     setupHistoryListeners();
 }
 
-// 文字数カウント更新
+// 文字数カウント更新（共通ユーティリティに移行済み）
 function updateCharCount() {
-    const chatInput = document.getElementById('chatInput');
-    const charCount = document.querySelector('.char-count');
-    
-    if (chatInput && charCount) {
-        const count = chatInput.value.length;
-        charCount.textContent = `${count}/1000`;
-        
-        if (count > 900) {
-            charCount.style.color = '#dc3545';
-        } else if (count > 800) {
-            charCount.style.color = '#ffc107';
-        } else {
-            charCount.style.color = '#666';
-        }
+    if (FormUtils) {
+        FormUtils.updateCharCount('#chatInput', '.char-count', 1000);
     }
 }
 
@@ -281,46 +214,25 @@ function updateInputStatus() {
     }
 }
 
-// AIレスポンス取得（新しいプロンプト生成ロジック）
+// AIレスポンス取得（共通ユーティリティを使用）
 async function getAIResponse(userMessage) {
-    const llmProvider = sessionStorage.getItem('llmProvider') || 'openai';
+    const llmProvider = StorageUtils.loadFromSessionStorage('llmProvider', 'openai');
     const prompt = createEnhancedPersonaPrompt(userMessage);
     
     console.log('Sending request with provider:', llmProvider);
     console.log('Prompt length:', prompt.length);
 
+    const requestData = {
+        provider: llmProvider,
+        prompt: prompt,
+        personaId: String(currentPersona.id),
+        purposeId: currentPurpose.id
+    };
+    
+    console.log('Request data:', requestData);
+    
     try {
-        const requestData = {
-            provider: llmProvider,
-            prompt: prompt,
-            personaId: String(currentPersona.id),
-            purposeId: currentPurpose.id
-        };
-        
-        console.log('Request data:', requestData);
-        
-        const response = await fetch('/api', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData)
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API Error Response:', errorText);
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-
-        const data = await response.json();
-        
-        if (data.error) {
-            throw new Error(data.error);
-        }
-
-        return data.response || '応答の生成に失敗しました。';
-
+        return await ApiUtils.callLLMApi(requestData);
     } catch (error) {
         console.error('API呼び出しエラー:', error);
         throw error;
@@ -406,12 +318,12 @@ async function sendMessage() {
 
     const message = chatInput.value.trim();
     if (!message) {
-        showErrorMessage('メッセージを入力してください。');
+        MessageUtils.showErrorMessage('メッセージを入力してください。');
         return;
     }
 
     if (!currentPersona || !currentPurpose) {
-        showErrorMessage('ペルソナまたは調査目的が設定されていません。');
+        MessageUtils.showErrorMessage('ペルソナまたは調査目的が設定されていません。');
         return;
     }
 
@@ -427,7 +339,7 @@ async function sendMessage() {
     updateCharCount();
 
     // ローディング表示
-    showLoadingOverlay();
+    MessageUtils.showLoadingOverlay();
 
     try {
         // AIからの応答を取得
@@ -457,13 +369,13 @@ async function sendMessage() {
 
     } catch (error) {
         console.error('AI応答の取得に失敗:', error);
-        showErrorMessage('AI応答の取得に失敗しました。APIキーや設定を確認してください。');
+        MessageUtils.showErrorMessage('AI応答の取得に失敗しました。APIキーや設定を確認してください。');
         addMessageToChat('assistant', 'すみません、応答の生成に失敗しました。しばらく時間をおいてから再度お試しください。');
     } finally {
         // UI復旧
         sendBtn.disabled = false;
         chatInput.disabled = false;
-        hideLoadingOverlay();
+        MessageUtils.hideLoadingOverlay();
         chatInput.focus();
     }
 }
@@ -559,25 +471,17 @@ function closeSidebar() {
     }
 }
 
-// 履歴関連
+// 履歴関連（共通ユーティリティに移行済み）
 function loadChatHistory() {
-    try {
-        const saved = localStorage.getItem('chatHistory');
-        if (saved) {
-            chatHistory = JSON.parse(saved);
-        }
+    if (StorageUtils) {
+        chatHistory = StorageUtils.loadChatHistory();
         updateHistoryDisplay();
-    } catch (error) {
-        console.warn('履歴の読み込みに失敗:', error);
-        chatHistory = [];
     }
 }
 
 function saveChatHistory() {
-    try {
-        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-    } catch (error) {
-        console.warn('履歴の保存に失敗:', error);
+    if (StorageUtils) {
+        StorageUtils.saveChatHistory(chatHistory);
     }
 }
 
@@ -610,19 +514,22 @@ function updateHistoryDisplay() {
 }
 
 function clearChatHistory() {
-    if (confirm('本当に対話履歴をクリアしますか？この操作は取り消せません。')) {
-        chatHistory = [];
-        saveChatHistory();
-        updateHistoryDisplay();
-        showSuccessMessage('対話履歴をクリアしました。');
-    }
+    MessageUtils.showConfirmDialog(
+        '本当に対話履歴をクリアしますか？この操作は取り消せません。',
+        () => {
+            chatHistory = [];
+            saveChatHistory();
+            updateHistoryDisplay();
+            MessageUtils.showSuccessMessage('対話履歴をクリアしました。');
+        }
+    );
 }
 
 // ExportManagerクラス
 class ExportManager {
     exportToCSV() {
         if (chatHistory.length === 0) {
-            showErrorMessage('エクスポートする履歴がありません。');
+            MessageUtils.showErrorMessage('エクスポートする履歴がありません。');
             return;
         }
 
@@ -671,11 +578,11 @@ class ExportManager {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            showSuccessMessage(`${chatHistory.length}件の履歴をCSV形式でエクスポートしました。`);
+            MessageUtils.showSuccessMessage(`${chatHistory.length}件の履歴をCSV形式でエクスポートしました。`);
 
         } catch (error) {
             console.error('CSV エクスポート エラー:', error);
-            showErrorMessage('CSVエクスポートに失敗しました: ' + error.message);
+            MessageUtils.showErrorMessage('CSVエクスポートに失敗しました: ' + error.message);
         }
     }
 
@@ -738,10 +645,9 @@ async function checkApiKeysAndHideInputs() {
     }
 }
 
-// ユーティリティ関数
+// ユーティリティ関数（共通ユーティリティに移行済み）
 function truncateText(text, maxLength) {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+    return PersonaUtils ? PersonaUtils.truncateText(text, maxLength) : text;
 }
 
 function showHistoryDetail(item) {
@@ -749,62 +655,34 @@ function showHistoryDetail(item) {
     alert(`質問: ${item.question}\\n\\n回答: ${item.answer}`);
 }
 
+// ローディング関連（共通ユーティリティに移行済み）
 function showLoadingOverlay(message = 'AI が回答を生成中...') {
-    const overlay = document.getElementById('loadingOverlay');
-    const messageElement = document.getElementById('loadingMessage');
-    if (overlay) {
-        if (messageElement) {
-            messageElement.textContent = message;
-        }
-        overlay.style.display = 'flex';
+    if (MessageUtils) {
+        MessageUtils.showLoadingOverlay(message);
     }
 }
 
 function hideLoadingOverlay() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.style.display = 'none';
+    if (MessageUtils) {
+        MessageUtils.hideLoadingOverlay();
     }
 }
 
+// メッセージ表示関連（共通ユーティリティに移行済み）
 function showErrorMessage(message) {
-    showMessage(message, 'error');
+    if (MessageUtils) {
+        MessageUtils.showErrorMessage(message);
+    }
 }
 
 function showSuccessMessage(message) {
-    showMessage(message, 'success');
+    if (MessageUtils) {
+        MessageUtils.showSuccessMessage(message);
+    }
 }
 
 function showMessage(message, type) {
-    const existingMessage = document.querySelector('.toast-message');
-    if (existingMessage) {
-        existingMessage.remove();
+    if (MessageUtils) {
+        MessageUtils.showMessage(message, type);
     }
-
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'toast-message';
-    messageDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 500;
-        z-index: 1001;
-        animation: slideIn 0.3s ease-out;
-        max-width: 400px;
-        word-wrap: break-word;
-        ${type === 'error' ? 'background: #dc3545;' : 'background: #28a745;'}
-    `;
-    messageDiv.textContent = message;
-
-    document.body.appendChild(messageDiv);
-
-    setTimeout(() => {
-        if (messageDiv.parentNode) {
-            messageDiv.style.animation = 'slideOut 0.3s ease-in';
-            setTimeout(() => messageDiv.remove(), 300);
-        }
-    }, 3000);
 }
