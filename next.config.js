@@ -1,18 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async rewrites() {
-    return [
-      // 既存のHTMLファイルへのアクセスを保持
-      {
-        source: '/chat.html',
-        destination: '/chat',
-      },
-      // 静的ファイルのアクセスを保持
-      {
-        source: '/personas.json',
-        destination: '/api/personas',
-      }
-    ];
+  typescript: {
+    // TypeScriptのビルドエラーを無視（本番環境でのみ）
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    // ESLintエラーでビルドを停止しない
+    ignoreDuringBuilds: false,
   },
   // 静的ファイルの処理
   async headers() {
@@ -27,8 +21,6 @@ const nextConfig = {
       },
     ];
   },
-  // 既存のファイルとの互換性を保つ
-  trailingSlash: false,
 };
 
 module.exports = nextConfig;

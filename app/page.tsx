@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Metadata } from 'next';
 
 interface Category {
   id: string;
@@ -34,16 +33,90 @@ interface Persona {
   purchase_drivers: string;
 }
 
+interface ApiStatus {
+  available: boolean;
+  tested: boolean;
+  testing: boolean;
+  connected?: boolean;
+}
+
 export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedLLM, setSelectedLLM] = useState('openai');
+  const [apiStatus, setApiStatus] = useState<Record<string, ApiStatus>>({
+    openai: { available: false, tested: false, testing: false },
+    claude: { available: false, tested: false, testing: false },
+    gemini: { available: false, tested: false, testing: false }
+  });
 
   useEffect(() => {
     loadCategories();
+    checkApiStatus();
   }, []);
+
+  const checkApiStatus = async () => {
+    try {
+      const response = await fetch('/api?action=get_api_keys');
+      if (response.ok) {
+        const hasKeys: { openai: boolean; claude: boolean; gemini: boolean } = await response.json();
+        setApiStatus(prev => ({
+          openai: { ...prev.openai, available: hasKeys.openai },
+          claude: { ...prev.claude, available: hasKeys.claude },
+          gemini: { ...prev.gemini, available: hasKeys.gemini }
+        }));
+      }
+    } catch (error) {
+      console.error('API status check failed:', error);
+    }
+  };
+
+  const testApiConnection = async (provider: string) => {
+    if (!apiStatus[provider]) return;
+    
+    setApiStatus(prev => ({
+      ...prev,
+      [provider]: { ...prev[provider], testing: true }
+    }));
+
+    try {
+      const response = await fetch('/api', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          provider: provider,
+          prompt: 'Hello, this is a test message.',
+          test: true
+        })
+      });
+
+      const success = response.ok;
+      setApiStatus(prev => ({
+        ...prev,
+        [provider]: { 
+          ...prev[provider], 
+          testing: false,
+          tested: true,
+          connected: success
+        }
+      }));
+    } catch (error) {
+      setApiStatus(prev => ({
+        ...prev,
+        [provider]: { 
+          ...prev[provider], 
+          testing: false,
+          tested: true,
+          connected: false
+        }
+      }));
+    }
+  };
 
   const loadCategories = async () => {
     try {
@@ -64,8 +137,8 @@ export default function Home() {
 
   const selectPersona = (persona: Persona) => {
     setSelectedPersona(persona);
-    // チャットページにリダイレクト
-    window.location.href = `/chat.html?personaId=${persona.id}&categoryId=${selectedCategory?.id}`;
+    // 選択されたLLMプロバイダーも含めてチャットページにリダイレクト
+    window.location.href = `/chat.html?personaId=${persona.id}&categoryId=${selectedCategory?.id}&llmProvider=${selectedLLM}`;
   };
 
   const goBack = () => {
@@ -102,6 +175,90 @@ export default function Home() {
       </header>
 
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
+        {/* LLM選択とAPI状態パネル */}
+        <div style={{ background: 'white', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', marginBottom: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '2rem', alignItems: 'center' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                LLMプロバイダー選択:
+              </label>
+              <select
+                value={selectedLLM}
+                onChange={(e) => setSelectedLLM(e.target.value)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '6px',
+                  border: '1px solid #ddd',
+                  fontSize: '1rem',
+                  minWidth: '200px'
+                }}
+              >
+                <option value="openai">OpenAI GPT-4</option>
+                <option value="claude">Anthropic Claude</option>
+                <option value="gemini">Google Gemini</option>
+              </select>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              {Object.entries(apiStatus).map(([provider, status]: [string, ApiStatus]) => {
+                const isSelected = provider === selectedLLM;
+                const statusColor = !status.available ? '#dc3545' : 
+                                  status.testing ? '#ffc107' : 
+                                  status.tested ? (status.connected ? '#28a745' : '#dc3545') : '#6c757d';
+                
+                return (
+                  <div key={provider} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '6px',
+                    border: `2px solid ${isSelected ? '#007bff' : '#e0e0e0'}`,
+                    backgroundColor: isSelected ? '#f8f9fa' : 'white'
+                  }}>
+                    <div style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      backgroundColor: statusColor
+                    }}></div>
+                    <span style={{ fontSize: '0.9rem', fontWeight: isSelected ? 'bold' : 'normal' }}>
+                      {provider.toUpperCase()}
+                    </span>
+                    {status.available && (
+                      <button
+                        onClick={() => testApiConnection(provider)}
+                        disabled={status.testing}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#007bff',
+                          cursor: status.testing ? 'not-allowed' : 'pointer',
+                          fontSize: '0.8rem',
+                          textDecoration: 'underline',
+                          opacity: status.testing ? 0.6 : 1
+                        }}
+                      >
+                        {status.testing ? 'テスト中...' : 'テスト'}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* API状態の説明 */}
+          <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#666' }}>
+            <div style={{ display: 'flex', gap: '2rem' }}>
+              <span><span style={{color: '#28a745'}}>●</span> 接続OK</span>
+              <span><span style={{color: '#dc3545'}}>●</span> 未設定/エラー</span>
+              <span><span style={{color: '#ffc107'}}>●</span> テスト中</span>
+              <span><span style={{color: '#6c757d'}}>●</span> 未テスト</span>
+            </div>
+          </div>
+        </div>
+
         {!selectedCategory ? (
           <section>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
