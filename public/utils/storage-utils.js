@@ -141,34 +141,95 @@ function loadSettings(defaultSettings = {}) {
 }
 
 /**
- * チャット履歴を保存
+ * 目的×ペルソナグループごとのチャット履歴キーを生成
+ * @param {string} purposeId - 目的ID
+ * @param {string} categoryId - ペルソナカテゴリID
+ * @returns {string} 履歴キー
+ */
+function generateHistoryKey(purposeId, categoryId) {
+    return `chatHistory_${purposeId}_${categoryId}`;
+}
+
+/**
+ * チャット履歴を保存（目的×ペルソナグループごと）
  * @param {Array} history - チャット履歴配列
+ * @param {string} purposeId - 目的ID
+ * @param {string} categoryId - ペルソナカテゴリID
  * @returns {boolean} 成功可否
  */
-function saveChatHistory(history) {
+function saveChatHistory(history, purposeId = null, categoryId = null) {
+    if (purposeId && categoryId) {
+        const key = generateHistoryKey(purposeId, categoryId);
+        return saveToLocalStorage(key, history);
+    }
+    // 後方互換性のため、引数が不足している場合はデフォルトキーを使用
     return saveToLocalStorage('chatHistory', history);
 }
 
 /**
- * チャット履歴を読み込み
+ * チャット履歴を読み込み（目的×ペルソナグループごと）
+ * @param {string} purposeId - 目的ID
+ * @param {string} categoryId - ペルソナカテゴリID
  * @returns {Array} チャット履歴配列
  */
-function loadChatHistory() {
+function loadChatHistory(purposeId = null, categoryId = null) {
+    if (purposeId && categoryId) {
+        const key = generateHistoryKey(purposeId, categoryId);
+        return loadFromLocalStorage(key, []);
+    }
+    // 後方互換性のため、引数が不足している場合はデフォルトキーを使用
     return loadFromLocalStorage('chatHistory', []);
 }
 
 /**
- * チャット履歴をクリア
+ * チャット履歴をクリア（目的×ペルソナグループごと）
+ * @param {string} purposeId - 目的ID
+ * @param {string} categoryId - ペルソナカテゴリID
  * @returns {boolean} 成功可否
  */
-function clearChatHistory() {
+function clearChatHistory(purposeId = null, categoryId = null) {
     try {
-        localStorage.removeItem('chatHistory');
+        if (purposeId && categoryId) {
+            const key = generateHistoryKey(purposeId, categoryId);
+            localStorage.removeItem(key);
+        } else {
+            localStorage.removeItem('chatHistory');
+        }
         return true;
     } catch (error) {
         console.warn('Failed to clear chat history:', error);
         return false;
     }
+}
+
+/**
+ * 全てのチャット履歴を取得（目的×ペルソナグループごと）
+ * @returns {Object} 全履歴オブジェクト
+ */
+function loadAllChatHistories() {
+    const histories = {};
+    
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('chatHistory_')) {
+            const history = loadFromLocalStorage(key, []);
+            histories[key] = history;
+        }
+    }
+    
+    return histories;
+}
+
+/**
+ * 特定の目的×ペルソナグループの履歴が存在するかチェック
+ * @param {string} purposeId - 目的ID
+ * @param {string} categoryId - ペルソナカテゴリID
+ * @returns {boolean} 存在するかどうか
+ */
+function hasChatHistory(purposeId, categoryId) {
+    const key = generateHistoryKey(purposeId, categoryId);
+    const history = loadFromLocalStorage(key, []);
+    return history.length > 0;
 }
 
 /**
@@ -213,6 +274,9 @@ window.StorageUtils = {
     saveChatHistory,
     loadChatHistory,
     clearChatHistory,
+    loadAllChatHistories,
+    hasChatHistory,
+    generateHistoryKey,
     getStorageUsage
 };
 

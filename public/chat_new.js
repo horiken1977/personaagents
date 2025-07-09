@@ -349,6 +349,9 @@ async function sendMessage() {
         addMessageToChat('assistant', response);
         
         // 履歴に保存
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryId = urlParams.get('categoryId');
+        
         const historyItem = {
             id: Date.now(),
             timestamp: new Date().toISOString(),
@@ -356,6 +359,7 @@ async function sendMessage() {
             personaName: currentPersona.name,
             purposeId: currentPurpose.id,
             purposeName: currentPurpose.name,
+            categoryId: categoryId,
             question: message,
             answer: response
         };
@@ -471,17 +475,29 @@ function closeSidebar() {
     }
 }
 
-// 履歴関連（共通ユーティリティに移行済み）
+// 履歴関連（目的×ペルソナグループごとに管理）
 function loadChatHistory() {
-    if (StorageUtils) {
-        chatHistory = StorageUtils.loadChatHistory();
-        updateHistoryDisplay();
+    if (StorageUtils && currentPurpose && currentPersona) {
+        // URLパラメータからカテゴリIDを取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryId = urlParams.get('categoryId');
+        
+        if (categoryId) {
+            chatHistory = StorageUtils.loadChatHistory(currentPurpose.id, categoryId);
+            updateHistoryDisplay();
+        }
     }
 }
 
 function saveChatHistory() {
-    if (StorageUtils) {
-        StorageUtils.saveChatHistory(chatHistory);
+    if (StorageUtils && currentPurpose && currentPersona) {
+        // URLパラメータからカテゴリIDを取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryId = urlParams.get('categoryId');
+        
+        if (categoryId) {
+            StorageUtils.saveChatHistory(chatHistory, currentPurpose.id, categoryId);
+        }
     }
 }
 
@@ -540,6 +556,7 @@ class ExportManager {
                 'ペルソナ名',
                 'ペルソナID',
                 '調査目的',
+                'ペルソナグループ',
                 '質問',
                 '回答'
             ];
@@ -547,12 +564,17 @@ class ExportManager {
             // CSVデータ作成
             const csvData = [headers];
             
+            // URLパラメータからカテゴリIDを取得
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoryId = urlParams.get('categoryId');
+            
             chatHistory.forEach(item => {
                 const row = [
                     new Date(item.timestamp).toLocaleString('ja-JP'),
                     item.personaName || currentPersona?.name || '',
                     item.personaId || currentPersona?.id || '',
                     item.purposeName || currentPurpose?.name || '',
+                    item.categoryId || categoryId || '',
                     this.escapeCsvValue(item.question || ''),
                     this.escapeCsvValue(item.answer || '')
                 ];
@@ -572,7 +594,13 @@ class ExportManager {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `chat-history-${new Date().toISOString().split('T')[0]}.csv`;
+            
+            // ファイル名に目的とカテゴリを含める
+            const purposeName = currentPurpose?.name || '未知の目的';
+            const categoryName = categoryId || '未知のカテゴリ';
+            const dateStr = new Date().toISOString().split('T')[0];
+            a.download = `chat-history_${purposeName}_${categoryName}_${dateStr}.csv`;
+            
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
