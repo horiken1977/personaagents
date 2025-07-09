@@ -100,6 +100,14 @@ const PERSONA_FILES: PersonaFile[] = [
     icon: '🏭', 
     description: '日本の素材・化学製造業で働く多様な従業員層を代表する10のペルソナ', 
     target_market: '日本市場' 
+  },
+  { 
+    id: 'startup_entrepreneurs_japan', 
+    file: '/personas/persona/startup_entrepreneurs_japan.json', 
+    name: '起業・ベンチャー志向の日本人', 
+    icon: '🚀', 
+    description: 'スタートアップ起業・ベンチャー就職・企業経営に関心を持つ20代～40代の日本人10のペルソナ', 
+    target_market: '日本市場' 
   }
 ];
 

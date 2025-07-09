@@ -1,0 +1,458 @@
+{
+  "categories": [
+    {
+      "id": "startup_entrepreneurs_japan",
+      "name": "起業・ベンチャー志向の日本人",
+      "description": "スタートアップ起業・ベンチャー就職・企業経営に関心を持つ20代～40代の日本人10のペルソナ",
+      "icon": "🚀",
+      "target_market": "日本市場",
+      "personas": [
+        {
+          "id": 21,
+          "name": "佐藤 健太",
+          "basic_demographics": {
+            "age": 24,
+            "gender": "male",
+            "location": "東京都",
+            "household_income": "¥4,500,000",
+            "family_status": "独身、一人暮らし",
+            "occupation": "ソフトウェアエンジニア（IT企業勤務）",
+            "education": "大学卒（コンピュータサイエンス専攻）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "analytical",
+            "risk_tolerance": "low",
+            "information_processing": "detail_oriented",
+            "social_influence": "peer_influenced",
+            "change_adaptability": "early_majority"
+          },
+          "lifestyle": {
+            "daily_routine": "朝7時起床、9-18時勤務、平日は仕事中心、休日は友人と外出",
+            "hobbies": "ゲーム、国内旅行、プログラミング",
+            "media_consumption": "技術ブログ、YouTube、ゲーム配信",
+            "shopping_habits": "Amazon中心、必要な時に購入"
+          },
+          "values_and_motivations": {
+            "core_values": ["技術力向上", "安定性", "友人関係", "成長機会"],
+            "life_goals": ["プロジェクトマネージャー", "技術リーダー", "アプリ開発"],
+            "pain_points": ["英語力不足", "事業資金調達不安", "安定収入維持"],
+            "aspirations": ["自分のサービス作成", "技術力を活かした起業", "人脈づくり"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["日本文化重視", "安定志向", "チームワーク"],
+            "language": "日本語（母語）、英語（基礎レベル）",
+            "cultural_influences": "IT業界の若手文化、ゲーム世代"
+          },
+          "communication_style": {
+            "verbal_style": "論理的、技術用語使用",
+            "detail_preference": "詳細な技術情報を重視",
+            "emotional_expression": "控えめ、技術話では熱心",
+            "preferred_channels": "Slack、技術フォーラム、対面"
+          }
+        },
+        {
+          "id": 22,
+          "name": "井上 友香",
+          "basic_demographics": {
+            "age": 22,
+            "gender": "female",
+            "location": "埼玉県",
+            "household_income": "¥2,000,000",
+            "family_status": "独身、実家暮らし",
+            "occupation": "大学院生（人工知能研究）",
+            "education": "大学院在学中（工学系）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "evidence_based",
+            "risk_tolerance": "high",
+            "information_processing": "systematic",
+            "social_influence": "expert_influenced",
+            "change_adaptability": "innovator"
+          },
+          "lifestyle": {
+            "daily_routine": "朝8時起床、研究室中心、週末は勉強会・イベント参加",
+            "hobbies": "研究、論文執筆、スタートアップイベント参加",
+            "media_consumption": "学術論文、技術ブログ、研究系YouTube",
+            "shopping_habits": "必要最小限、研究関連書籍・機材中心"
+          },
+          "values_and_motivations": {
+            "core_values": ["研究成果の社会還元", "イノベーション", "国際性", "学習意欲"],
+            "life_goals": ["AIベンチャー起業", "研究成果のビジネス化", "海外展開"],
+            "pain_points": ["経営スキル不足", "資金調達経験不足", "ビジネス人脈不足"],
+            "aspirations": ["世界最先端技術への貢献", "研究とビジネスの架け橋", "グローバル人材"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["研究重視", "国際志向", "革新性"],
+            "language": "日本語（母語）、英語（ビジネスレベル）",
+            "cultural_influences": "国際的な研究環境、スタートアップ文化"
+          },
+          "communication_style": {
+            "verbal_style": "論理的、研究用語使用",
+            "detail_preference": "データとエビデンス重視",
+            "emotional_expression": "研究に対して情熱的",
+            "preferred_channels": "学会、研究フォーラム、英語メール"
+          }
+        },
+        {
+          "id": 23,
+          "name": "鈴木 太郎",
+          "basic_demographics": {
+            "age": 29,
+            "gender": "male",
+            "location": "大阪府",
+            "household_income": "¥6,000,000",
+            "family_status": "独身、実家近く",
+            "occupation": "営業職（製造業の大手企業）",
+            "education": "大学卒（経済学部）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "relationship_oriented",
+            "risk_tolerance": "very_low",
+            "information_processing": "people_focused",
+            "social_influence": "tradition_influenced",
+            "change_adaptability": "late_majority"
+          },
+          "lifestyle": {
+            "daily_routine": "朝7時起床、8-19時勤務、夜は実家で家族と過ごす",
+            "hobbies": "ゴルフ、地元仲間との飲み会、野球観戦",
+            "media_consumption": "関西ローカル番組、スポーツニュース、営業関連書籍",
+            "shopping_habits": "地元商店街、実店舗での購入重視"
+          },
+          "values_and_motivations": {
+            "core_values": ["家族との時間", "地域コミュニティ", "安定性", "人間関係"],
+            "life_goals": ["営業マネージャー昇進", "結婚・家庭", "地域貢献"],
+            "pain_points": ["起業リスク", "安定収入への不安", "時間と資金確保"],
+            "aspirations": ["企業内でのキャリア発展", "地域での信頼関係構築", "家族の幸せ"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["関西文化", "伝統重視", "人情味"],
+            "language": "日本語（母語、関西弁）",
+            "cultural_influences": "関西商人文化、地域コミュニティ"
+          },
+          "communication_style": {
+            "verbal_style": "親しみやすい、関西弁使用",
+            "detail_preference": "人間関係重視、実体験重視",
+            "emotional_expression": "オープン、親しみやすい",
+            "preferred_channels": "対面、電話、飲み会"
+          }
+        },
+        {
+          "id": 24,
+          "name": "中村 あやか",
+          "basic_demographics": {
+            "age": 31,
+            "gender": "female",
+            "location": "神奈川県",
+            "household_income": "¥7,500,000",
+            "family_status": "独身、一人暮らし",
+            "occupation": "研究開発職（製薬企業）",
+            "education": "大学院修了（分子生物学）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "evidence_based",
+            "risk_tolerance": "moderate",
+            "information_processing": "systematic",
+            "social_influence": "expert_influenced",
+            "change_adaptability": "early_adopter"
+          },
+          "lifestyle": {
+            "daily_routine": "朝6時起床、8-19時勤務、夜は論文執筆・学習",
+            "hobbies": "科学雑誌執筆、マラソン、セミナー参加",
+            "media_consumption": "科学雑誌、医学ニュース、ビジネス書籍",
+            "shopping_habits": "品質重視、研究関連書籍・機材"
+          },
+          "values_and_motivations": {
+            "core_values": ["科学的発見", "社会貢献", "専門性", "国際性"],
+            "life_goals": ["バイオベンチャー起業", "新薬開発", "世界展開"],
+            "pain_points": ["経営知識不足", "ビジネスモデル構築", "資金調達"],
+            "aspirations": ["技術の社会還元", "グローバル展開", "研究者起業家"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["科学的思考", "国際志向", "専門性重視"],
+            "language": "日本語（母語）、英語（流暢）",
+            "cultural_influences": "国際的な研究環境、アメリカ留学経験"
+          },
+          "communication_style": {
+            "verbal_style": "科学的、専門用語使用",
+            "detail_preference": "データと実証重視",
+            "emotional_expression": "研究に対して情熱的",
+            "preferred_channels": "学会、専門フォーラム、国際会議"
+          }
+        },
+        {
+          "id": 25,
+          "name": "佐々木 大輔",
+          "basic_demographics": {
+            "age": 36,
+            "gender": "male",
+            "location": "福岡県",
+            "household_income": "¥8,500,000",
+            "family_status": "既婚、子供1人",
+            "occupation": "マーケティングマネージャー（通信業）",
+            "education": "大学卒（経営学部）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "strategic",
+            "risk_tolerance": "moderate",
+            "information_processing": "analytical",
+            "social_influence": "leadership_oriented",
+            "change_adaptability": "early_adopter"
+          },
+          "lifestyle": {
+            "daily_routine": "朝6時起床、8-20時勤務、休日は家族時間",
+            "hobbies": "海外旅行、読書、子供との時間",
+            "media_consumption": "ビジネス雑誌、国際ニュース、マーケティング関連書籍",
+            "shopping_habits": "品質重視、効率的なオンライン購入"
+          },
+          "values_and_motivations": {
+            "core_values": ["家族の幸せ", "事業創造", "国際性", "チーム育成"],
+            "life_goals": ["自分の会社設立", "新規事業創出", "国際展開"],
+            "pain_points": ["事業資金確保", "安定収入喪失", "家族との時間"],
+            "aspirations": ["デジタルサービス創出", "グローバル事業展開", "社会貢献"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["家族重視", "国際感覚", "革新性"],
+            "language": "日本語（母語）、英語（ビジネスレベル）",
+            "cultural_influences": "国際ビジネス経験、九州の起業文化"
+          },
+          "communication_style": {
+            "verbal_style": "戦略的、ビジネス用語使用",
+            "detail_preference": "データ分析と市場トレンド重視",
+            "emotional_expression": "プロジェクトに対して情熱的",
+            "preferred_channels": "ビジネス会議、国際電話、メール"
+          }
+        },
+        {
+          "id": 26,
+          "name": "山本 舞",
+          "basic_demographics": {
+            "age": 34,
+            "gender": "female",
+            "location": "埼玉県",
+            "household_income": "¥6,200,000",
+            "family_status": "既婚、子供2人",
+            "occupation": "プロダクトマネージャー（消費財メーカー）",
+            "education": "大学卒（経営学部）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "practical",
+            "risk_tolerance": "low",
+            "information_processing": "holistic",
+            "social_influence": "family_oriented",
+            "change_adaptability": "late_majority"
+          },
+          "lifestyle": {
+            "daily_routine": "朝6時起床、8-17時勤務、夜は家族時間",
+            "hobbies": "ヨガ、地域コミュニティ活動、読書",
+            "media_consumption": "育児雑誌、ビジネス書籍、SNS情報収集",
+            "shopping_habits": "家族向け、安全性重視、計画的購入"
+          },
+          "values_and_motivations": {
+            "core_values": ["家族の幸せ", "安定性", "子育て", "ワークライフバランス"],
+            "life_goals": ["子育てと仕事の両立", "安定したキャリア", "家族の豊かさ"],
+            "pain_points": ["子育てとの両立", "収入減少リスク", "時間不足"],
+            "aspirations": ["家族に優しい働き方", "安定した収入", "地域貢献"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["家族第一", "安定重視", "地域コミュニティ"],
+            "language": "日本語（母語）",
+            "cultural_influences": "働く母親文化、地域コミュニティ"
+          },
+          "communication_style": {
+            "verbal_style": "丁寧、家族中心の話題",
+            "detail_preference": "実用的情報重視",
+            "emotional_expression": "家族話で感情的",
+            "preferred_channels": "対面、メール、地域ネットワーク"
+          }
+        },
+        {
+          "id": 27,
+          "name": "加藤 翔",
+          "basic_demographics": {
+            "age": 26,
+            "gender": "male",
+            "location": "愛知県",
+            "household_income": "¥4,800,000",
+            "family_status": "独身、シェアハウス",
+            "occupation": "ウェブ開発エンジニア（ITベンチャー）",
+            "education": "大学卒（情報工学）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "intuitive",
+            "risk_tolerance": "very_high",
+            "information_processing": "quick",
+            "social_influence": "peer_influenced",
+            "change_adaptability": "innovator"
+          },
+          "lifestyle": {
+            "daily_routine": "朝9時起床、10-20時勤務、夜は開発・イベント参加",
+            "hobbies": "個人開発、テックイベント、起業家YouTube視聴",
+            "media_consumption": "技術ブログ、起業家YouTube、海外テックニュース",
+            "shopping_habits": "最新技術機器、必要最小限"
+          },
+          "values_and_motivations": {
+            "core_values": ["技術革新", "自由度", "挑戦", "創造性"],
+            "life_goals": ["スタートアップ起業", "IoTサービス開発", "海外展開"],
+            "pain_points": ["資金調達", "共同創業者確保", "ビジネス経験不足"],
+            "aspirations": ["自分の技術で社会を変える", "グローバル起業家", "テクノロジーリーダー"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["技術重視", "革新性", "国際志向"],
+            "language": "日本語（母語）、英語（技術文書レベル）",
+            "cultural_influences": "アメリカ留学経験、シリコンバレー文化"
+          },
+          "communication_style": {
+            "verbal_style": "カジュアル、技術用語多用",
+            "detail_preference": "技術的詳細重視",
+            "emotional_expression": "技術と起業に対して情熱的",
+            "preferred_channels": "Slack、GitHub、テックイベント"
+          }
+        },
+        {
+          "id": 28,
+          "name": "斎藤 恵美",
+          "basic_demographics": {
+            "age": 28,
+            "gender": "female",
+            "location": "東京都",
+            "household_income": "¥9,000,000",
+            "family_status": "独身、一人暮らし",
+            "occupation": "金融アナリスト（大手投資銀行）",
+            "education": "大学卒（経済学部）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "analytical",
+            "risk_tolerance": "moderate",
+            "information_processing": "data_driven",
+            "social_influence": "expert_influenced",
+            "change_adaptability": "early_adopter"
+          },
+          "lifestyle": {
+            "daily_routine": "朝6時起床、8-22時勤務、夜はジム・ヨガ",
+            "hobbies": "投資、読書、ジム、同僚との交流",
+            "media_consumption": "金融ニュース、経済雑誌、投資関連書籍",
+            "shopping_habits": "高品質志向、効率的なオンライン購入"
+          },
+          "values_and_motivations": {
+            "core_values": ["専門性", "高収入", "国際性", "キャリア成長"],
+            "life_goals": ["投資ファンド運営", "独立", "国際的な仕事"],
+            "pain_points": ["高収入を捨てるリスク", "起業経験不足", "時間不足"],
+            "aspirations": ["金融業界での独立", "投資を通じた社会貢献", "グローバル金融人材"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["専門性重視", "国際志向", "効率性"],
+            "language": "日本語（母語）、英語（ビジネスレベル）",
+            "cultural_influences": "国際金融文化、留学経験"
+          },
+          "communication_style": {
+            "verbal_style": "論理的、金融用語使用",
+            "detail_preference": "データと数字重視",
+            "emotional_expression": "冷静、投資話で熱心",
+            "preferred_channels": "メール、国際電話、金融フォーラム"
+          }
+        },
+        {
+          "id": 29,
+          "name": "伊藤 優治",
+          "basic_demographics": {
+            "age": 40,
+            "gender": "male",
+            "location": "千葉県",
+            "household_income": "¥8,000,000",
+            "family_status": "既婚、子供2人",
+            "occupation": "プロジェクトリーダー（システム開発）",
+            "education": "大学卒（情報工学）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "deliberative",
+            "risk_tolerance": "low",
+            "information_processing": "thorough",
+            "social_influence": "family_oriented",
+            "change_adaptability": "pragmatic"
+          },
+          "lifestyle": {
+            "daily_routine": "朝6時起床、8-19時勤務、夜は家族時間",
+            "hobbies": "子供のサッカー観戦、料理、副業開発",
+            "media_consumption": "技術書籍、ビジネスニュース、プログラミング講座",
+            "shopping_habits": "家族向け、品質重視、計画的購入"
+          },
+          "values_and_motivations": {
+            "core_values": ["家族の幸せ", "安定性", "技術継承", "地域貢献"],
+            "life_goals": ["安定した副業収入", "技術を活かした起業", "家族の豊かさ"],
+            "pain_points": ["40歳での起業リスク", "家族との両立", "資金調達"],
+            "aspirations": ["経験を活かした起業", "後進育成", "安定した老後"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["家族第一", "安定重視", "技術継承"],
+            "language": "日本語（母語）",
+            "cultural_influences": "日本のIT業界文化、家族重視"
+          },
+          "communication_style": {
+            "verbal_style": "経験重視、技術用語使用",
+            "detail_preference": "実用的技術情報重視",
+            "emotional_expression": "家族と技術に対して情熱的",
+            "preferred_channels": "対面、メール、技術フォーラム"
+          }
+        },
+        {
+          "id": 30,
+          "name": "小林 花",
+          "basic_demographics": {
+            "age": 32,
+            "gender": "female",
+            "location": "神奈川県",
+            "household_income": "¥5,500,000",
+            "family_status": "独身、一人暮らし",
+            "occupation": "メディアプランナー（広告代理店）",
+            "education": "大学卒（芸術学部）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "intuitive",
+            "risk_tolerance": "moderate",
+            "information_processing": "visual_oriented",
+            "social_influence": "trend_aware",
+            "change_adaptability": "early_adopter"
+          },
+          "lifestyle": {
+            "daily_routine": "朝8時起床、9-19時勤務、夜はカフェ・アート鑑賞",
+            "hobbies": "アート鑑賞、カフェ巡り、コンテンツ制作",
+            "media_consumption": "デザイン雑誌、SNS、アート関連サイト",
+            "shopping_habits": "トレンド重視、デザイン性重視、都市部店舗"
+          },
+          "values_and_motivations": {
+            "core_values": ["創造性", "美的感覚", "自己表現", "文化貢献"],
+            "life_goals": ["クリエイティブスタジオ起業", "文化事業", "メディア拡大"],
+            "pain_points": ["収益化の難しさ", "資金調達", "競争激化"],
+            "aspirations": ["自分のメディア拡大", "文化・芸術分野での起業", "クリエイティブリーダー"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["創造性重視", "美的感覚", "都市文化"],
+            "language": "日本語（母語）、英語（日常会話）、フランス語（基礎）",
+            "cultural_influences": "都市部クリエイティブ文化、欧米アート文化"
+          },
+          "communication_style": {
+            "verbal_style": "クリエイティブ、感性重視",
+            "detail_preference": "ビジュアル重視、感性的表現",
+            "emotional_expression": "アートと創造に対して情熱的",
+            "preferred_channels": "SNS、デザインフォーラム、カフェ"
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2024-12-15",
+    "description": "スタートアップ起業・ベンチャー就職・企業経営に関心を持つ20代～40代の日本人。起業意識と海外志向の調査データに基づいて作成。interview_purposes.jsonと組み合わせて使用。"
+  }
+}
