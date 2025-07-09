@@ -22,6 +22,15 @@ interface PersonaCategory {
   personas: Persona[];
 }
 
+interface PersonaFile {
+  id: string;
+  file: string;
+  name: string;
+  icon: string;
+  description: string;
+  target_market: string;
+}
+
 interface Persona {
   id: number;
   name: string;
@@ -74,11 +83,32 @@ interface ApiStatus {
   connected?: boolean;
 }
 
+// 利用可能なペルソナファイル
+const PERSONA_FILES: PersonaFile[] = [
+  { 
+    id: 'north_america_consumers', 
+    file: '/personas/persona/north_america_consumers.json', 
+    name: '北米消費者', 
+    icon: '🇺🇸', 
+    description: '北米市場の多様な消費者層を代表する10のペルソナ', 
+    target_market: '北米市場' 
+  },
+  { 
+    id: 'japanese_manufacturing_workers', 
+    file: '/personas/persona/japanese_manufacturing_workers.json', 
+    name: '日本製造業従業員', 
+    icon: '🏭', 
+    description: '日本の素材・化学製造業で働く多様な従業員層を代表する10のペルソナ', 
+    target_market: '日本市場' 
+  }
+];
+
 export default function Home() {
   // 状態管理
   const [purposes, setPurposes] = useState<InterviewPurpose[]>([]);
   const [categories, setCategories] = useState<PersonaCategory[]>([]);
   const [selectedPurpose, setSelectedPurpose] = useState<InterviewPurpose | null>(null);
+  const [selectedPersonaFile, setSelectedPersonaFile] = useState<PersonaFile | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<PersonaCategory | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [loading, setLoading] = useState(true);
@@ -122,20 +152,35 @@ export default function Home() {
 
   const loadData = async () => {
     try {
-      // 調査目的とペルソナデータを並行して読み込み
-      const [purposesRes, personasRes] = await Promise.all([
-        fetch('/personas/setting/interview_purposes.json'),
-        fetch('/personas/persona/north_america_consumers.json')
-      ]);
-      
+      // 調査目的を読み込み
+      const purposesRes = await fetch('/personas/setting/interview_purposes.json');
       const purposesData = await purposesRes.json();
-      const personasData = await personasRes.json();
-      
       setPurposes(purposesData.purposes || []);
-      setCategories(personasData.categories || []);
       setLoading(false);
     } catch (err) {
       setError('データの読み込みに失敗しました。');
+      setLoading(false);
+    }
+  };
+
+  const loadPersonaCategory = async (personaFile: PersonaFile) => {
+    try {
+      setLoading(true);
+      const response = await fetch(personaFile.file);
+      const data = await response.json();
+      const categories = data.categories || [];
+      
+      // カテゴリが1つしかない場合は直接選択
+      if (categories.length === 1) {
+        setSelectedCategory(categories[0]);
+      } else {
+        setCategories(categories);
+      }
+      
+      setSelectedPersonaFile(personaFile);
+      setLoading(false);
+    } catch (err) {
+      setError('ペルソナデータの読み込みに失敗しました。');
       setLoading(false);
     }
   };
@@ -202,6 +247,7 @@ export default function Home() {
 
   const selectPurpose = (purpose: InterviewPurpose) => {
     setSelectedPurpose(purpose);
+    setSelectedPersonaFile(null);
     setSelectedCategory(null);
     setSelectedPersona(null);
   };
@@ -222,6 +268,14 @@ export default function Home() {
       setSelectedPersona(null);
     } else if (selectedCategory) {
       setSelectedCategory(null);
+      // カテゴリが1つしかない場合はペルソナファイル選択に戻る
+      if (categories.length === 1) {
+        setSelectedPersonaFile(null);
+        setCategories([]);
+      }
+    } else if (selectedPersonaFile) {
+      setSelectedPersonaFile(null);
+      setCategories([]);
     } else if (selectedPurpose) {
       setSelectedPurpose(null);
     }
@@ -338,7 +392,7 @@ export default function Home() {
         </div>
 
         {/* ナビゲーション */}
-        {(selectedPurpose || selectedCategory) && (
+        {(selectedPurpose || selectedPersonaFile || selectedCategory) && (
           <div style={{ marginBottom: '2rem' }}>
             <button
               onClick={goBack}
@@ -358,10 +412,16 @@ export default function Home() {
               {selectedPurpose && (
                 <>
                   <span>{selectedPurpose.icon} {selectedPurpose.name}</span>
-                  {selectedCategory && <span> → </span>}
+                  {selectedPersonaFile && <span> → </span>}
                 </>
               )}
-              {selectedCategory && (
+              {selectedPersonaFile && (
+                <>
+                  <span>{selectedPersonaFile.icon} {selectedPersonaFile.name}</span>
+                  {selectedCategory && categories.length > 1 && <span> → </span>}
+                </>
+              )}
+              {selectedCategory && categories.length > 1 && (
                 <span>{selectedCategory.icon} {selectedCategory.name}</span>
               )}
             </div>
@@ -378,7 +438,7 @@ export default function Home() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-              {purposes.map((purpose, index) => (
+              {purposes.map((purpose) => (
                 <div
                   key={purpose.id}
                   onClick={() => selectPurpose(purpose)}
@@ -438,16 +498,79 @@ export default function Home() {
               ))}
             </div>
           </section>
-        ) : !selectedCategory ? (
-          // ペルソナカテゴリ選択
+        ) : !selectedPersonaFile ? (
+          // ペルソナファイル選択
           <section>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
               <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>ペルソナグループを選択してください</h2>
               <p style={{ fontSize: '1.1rem', color: '#666' }}>対話したいペルソナのグループを選択してください。</p>
             </div>
 
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+              {PERSONA_FILES.map((personaFile) => (
+                <div
+                  key={personaFile.id}
+                  onClick={() => loadPersonaCategory(personaFile)}
+                  style={{
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '2rem',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    border: '1px solid #e0e0e0'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-8px)';
+                    e.currentTarget.style.boxShadow = '0 12px 25px rgba(0, 0, 0, 0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ fontSize: '3rem', marginRight: '1rem' }}>{personaFile.icon}</div>
+                    <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#333' }}>{personaFile.name}</h3>
+                  </div>
+                  <p style={{ color: '#666', marginBottom: '1.5rem', lineHeight: 1.6 }}>{personaFile.description}</p>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <div>
+                      <span style={{ display: 'inline-block', marginRight: '0.5rem' }}>🌍</span>
+                      <span style={{ color: '#555' }}>ターゲット市場: {personaFile.target_market}</span>
+                    </div>
+                  </div>
+                  <button
+                    style={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '0.75rem 1.5rem',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      width: '100%',
+                      transition: 'opacity 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    このグループを選択
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : !selectedCategory && categories.length > 1 ? (
+          // ペルソナカテゴリ選択（複数カテゴリがある場合のみ表示）
+          <section>
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+              <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>カテゴリを選択してください</h2>
+              <p style={{ fontSize: '1.1rem', color: '#666' }}>ペルソナのカテゴリを選択してください。</p>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-              {categories.map((category, index) => (
+              {categories.map((category) => (
                 <div
                   key={category.id}
                   onClick={() => selectCategory(category)}
@@ -499,7 +622,7 @@ export default function Home() {
                     onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
                     onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                   >
-                    このグループを選択
+                    このカテゴリを選択
                   </button>
                 </div>
               ))}
@@ -509,12 +632,12 @@ export default function Home() {
           // ペルソナ選択
           <section>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-              <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>{selectedCategory.name}から選択</h2>
+              <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>{selectedCategory?.name || selectedPersonaFile?.name}から選択</h2>
               <p style={{ fontSize: '1.1rem', color: '#666' }}>対話したいペルソナを選択してください。</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-              {selectedCategory.personas.map((persona, index) => (
+              {(selectedCategory?.personas || []).map((persona) => (
                 <div
                   key={persona.id}
                   onClick={() => selectPersona(persona)}
