@@ -1,0 +1,458 @@
+{
+  "categories": [
+    {
+      "id": "japanese_manufacturing_workers",
+      "name": "日本製造業従業員",
+      "description": "日本の素材・化学製造業で働く多様な従業員層を代表する10のペルソナ",
+      "icon": "🏭",
+      "target_market": "日本市場",
+      "personas": [
+        {
+          "id": 11,
+          "name": "田中 健太",
+          "basic_demographics": {
+            "age": 28,
+            "gender": "male",
+            "location": "愛知県豊田市",
+            "household_income": "¥3,200,000",
+            "family_status": "独身、実家暮らし",
+            "occupation": "化学工場ライン工",
+            "education": "工業高校卒"
+          },
+          "psychological_traits": {
+            "decision_making_style": "cautious",
+            "risk_tolerance": "low",
+            "information_processing": "detail_oriented",
+            "social_influence": "peer_influenced",
+            "change_adaptability": "late_majority"
+          },
+          "lifestyle": {
+            "daily_routine": "朝5時起床、6時出社、3交替勤務、22時帰宅",
+            "hobbies": "パチンコ、オンラインゲーム、アニメ鑑賞",
+            "media_consumption": "YouTube、Twitter、ニコニコ動画",
+            "shopping_habits": "コンビニ中心、月1回のイオンモール"
+          },
+          "values_and_motivations": {
+            "core_values": ["雇用安定", "実家への貢献", "趣味の時間", "友人関係"],
+            "life_goals": ["結婚資金貯蓄", "マイカー購入", "親孝行"],
+            "pain_points": ["低賃金", "昇進の遅さ", "体力的疲労", "出会いの少なさ"],
+            "aspirations": ["安定した生活", "家族を持つ", "趣味を楽しむ"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["年功序列への疑問", "ワークライフバランス重視", "個人主義傾向"],
+            "language": "日本語（母語）、英語（片言）",
+            "cultural_influences": "地方都市の若者文化、SNS世代"
+          },
+          "communication_style": {
+            "verbal_style": "カジュアル、若者言葉使用",
+            "detail_preference": "要点のみ、ビジュアル重視",
+            "emotional_expression": "感情を抑制、親しい人には開放的",
+            "preferred_channels": "LINE、Instagram、対面"
+          }
+        },
+        {
+          "id": 12,
+          "name": "佐藤 美智子",
+          "basic_demographics": {
+            "age": 42,
+            "gender": "female",
+            "location": "大阪府堺市",
+            "household_income": "¥5,500,000",
+            "family_status": "既婚、子供2人（高校生、中学生）",
+            "occupation": "品質管理ライン管理者",
+            "education": "専門学校卒（化学系）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "methodical",
+            "risk_tolerance": "moderate",
+            "information_processing": "systematic",
+            "social_influence": "independent",
+            "change_adaptability": "early_majority"
+          },
+          "lifestyle": {
+            "daily_routine": "朝4時30分起床、弁当作り、7時出社、19時帰宅",
+            "hobbies": "料理、ガーデニング、韓国ドラマ",
+            "media_consumption": "TVer、クックパッド、主婦向けブログ",
+            "shopping_habits": "業務スーパー、コストコ月1回"
+          },
+          "values_and_motivations": {
+            "core_values": ["家族の幸せ", "仕事への誇り", "経済的安定", "子供の教育"],
+            "life_goals": ["子供の大学進学", "住宅ローン完済", "老後の準備"],
+            "pain_points": ["仕事と家事の両立", "部下管理の難しさ", "男性中心の職場"],
+            "aspirations": ["女性管理職のロールモデル", "家族との時間増加"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["勤勉", "家族重視", "女性の社会進出"],
+            "language": "日本語（母語）、関西弁",
+            "cultural_influences": "関西の商人文化、働く母親世代"
+          },
+          "communication_style": {
+            "verbal_style": "丁寧だが親しみやすい、関西弁混じり",
+            "detail_preference": "必要十分な情報、実用的",
+            "emotional_expression": "温かみのある、共感的",
+            "preferred_channels": "対面、電話、メール"
+          }
+        },
+        {
+          "id": 13,
+          "name": "山田 誠司",
+          "basic_demographics": {
+            "age": 51,
+            "gender": "male",
+            "location": "千葉県市原市",
+            "household_income": "¥8,000,000",
+            "family_status": "既婚、子供2人（大学生、高校生）",
+            "occupation": "化学工場長",
+            "education": "国立大学工学部卒"
+          },
+          "psychological_traits": {
+            "decision_making_style": "consensus_oriented",
+            "risk_tolerance": "low",
+            "information_processing": "holistic",
+            "social_influence": "tradition_oriented",
+            "change_adaptability": "late_majority"
+          },
+          "lifestyle": {
+            "daily_routine": "朝5時起床、6時30分出社、20時帰宅、休日出勤あり",
+            "hobbies": "ゴルフ、釣り、日本酒",
+            "media_consumption": "日経新聞、NHK、業界誌",
+            "shopping_habits": "デパート、専門店重視"
+          },
+          "values_and_motivations": {
+            "core_values": ["安全第一", "品質維持", "部下育成", "会社への忠誠"],
+            "life_goals": ["無事故継続", "後継者育成", "定年まで勤続"],
+            "pain_points": ["若手の離職", "デジタル化対応", "本社からの圧力"],
+            "aspirations": ["工場の発展", "技術伝承", "安全記録更新"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["終身雇用", "年功序列", "集団主義", "改善精神"],
+            "language": "日本語（母語）、英語（ビジネスレベル）",
+            "cultural_influences": "昭和の企業戦士文化、製造業の誇り"
+          },
+          "communication_style": {
+            "verbal_style": "権威的だが配慮深い、敬語使用",
+            "detail_preference": "包括的、根回し重視",
+            "emotional_expression": "抑制的、威厳を保つ",
+            "preferred_channels": "対面会議、正式文書"
+          }
+        },
+        {
+          "id": 14,
+          "name": "鈴木 隆",
+          "basic_demographics": {
+            "age": 35,
+            "gender": "male",
+            "location": "神奈川県川崎市",
+            "household_income": "¥6,500,000",
+            "family_status": "既婚、子供1人（3歳）",
+            "occupation": "安全管理者",
+            "education": "私立大学理工学部卒、安全管理資格保有"
+          },
+          "psychological_traits": {
+            "decision_making_style": "analytical",
+            "risk_tolerance": "very_low",
+            "information_processing": "detail_oriented",
+            "social_influence": "rule_oriented",
+            "change_adaptability": "early_adopter"
+          },
+          "lifestyle": {
+            "daily_routine": "朝6時起床、7時出社、現場巡回、18時帰宅",
+            "hobbies": "ジョギング、資格勉強、子供との時間",
+            "media_consumption": "安全管理サイト、技術ブログ、YouTube",
+            "shopping_habits": "Amazon中心、安全性重視の商品選び"
+          },
+          "values_and_motivations": {
+            "core_values": ["ゼロ災害", "規則遵守", "継続的改善", "家族の安全"],
+            "life_goals": ["無事故記録達成", "上級資格取得", "マイホーム購入"],
+            "pain_points": ["現場の安全意識格差", "書類業務の多さ", "予算制約"],
+            "aspirations": ["業界の安全リーダー", "新技術導入", "ワークライフバランス"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["安全文化", "規律重視", "技術革新への関心"],
+            "language": "日本語（母語）、英語（技術文書読解可）",
+            "cultural_influences": "都市部サラリーマン、子育て世代"
+          },
+          "communication_style": {
+            "verbal_style": "論理的、データ重視、丁寧",
+            "detail_preference": "極めて詳細、エビデンス重視",
+            "emotional_expression": "冷静、客観的",
+            "preferred_channels": "メール、報告書、安全会議"
+          }
+        },
+        {
+          "id": 15,
+          "name": "渡辺 裕子",
+          "basic_demographics": {
+            "age": 26,
+            "gender": "female",
+            "location": "東京都江東区",
+            "household_income": "¥4,200,000",
+            "family_status": "独身、一人暮らし",
+            "occupation": "化学メーカー営業担当",
+            "education": "有名私立大学経済学部卒"
+          },
+          "psychological_traits": {
+            "decision_making_style": "intuitive",
+            "risk_tolerance": "moderate",
+            "information_processing": "quick",
+            "social_influence": "trend_aware",
+            "change_adaptability": "innovator"
+          },
+          "lifestyle": {
+            "daily_routine": "朝7時起床、9時出社、客先訪問、19時帰宅",
+            "hobbies": "ヨガ、カフェ巡り、海外旅行",
+            "media_consumption": "Instagram、Netflix、ビジネス系YouTube",
+            "shopping_habits": "オンライン中心、サステナブル商品選好"
+          },
+          "values_and_motivations": {
+            "core_values": ["キャリア成長", "ワークライフバランス", "社会貢献", "自己実現"],
+            "life_goals": ["営業成績向上", "海外勤務経験", "MBA取得"],
+            "pain_points": ["接待文化への違和感", "男性中心の業界", "長時間労働"],
+            "aspirations": ["女性営業のパイオニア", "グローバル人材", "起業"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["個人主義", "グローバル志向", "男女平等"],
+            "language": "日本語（母語）、英語（ビジネスレベル）、韓国語（日常会話）",
+            "cultural_influences": "都市部の若者文化、Z世代価値観"
+          },
+          "communication_style": {
+            "verbal_style": "フレンドリー、現代的、効率的",
+            "detail_preference": "要点整理、ビジュアル活用",
+            "emotional_expression": "オープン、ポジティブ",
+            "preferred_channels": "チャット、ビデオ会議、SNS"
+          }
+        },
+        {
+          "id": 16,
+          "name": "小林 大輔",
+          "basic_demographics": {
+            "age": 39,
+            "gender": "male",
+            "location": "兵庫県姫路市",
+            "household_income": "¥9,500,000",
+            "family_status": "既婚、子供2人（小学生）",
+            "occupation": "営業マネージャー",
+            "education": "関西有名大学商学部卒、MBA保有"
+          },
+          "psychological_traits": {
+            "decision_making_style": "strategic",
+            "risk_tolerance": "moderate",
+            "information_processing": "analytical",
+            "social_influence": "leadership_oriented",
+            "change_adaptability": "early_adopter"
+          },
+          "lifestyle": {
+            "daily_routine": "朝5時30分起床、7時出社、出張月10日、20時帰宅",
+            "hobbies": "ゴルフ、ワイン、子供のサッカー観戦",
+            "media_consumption": "日経ビジネス、LinkedIn、Podcast",
+            "shopping_habits": "百貨店、高級スーパー、ブランド品"
+          },
+          "values_and_motivations": {
+            "core_values": ["成果主義", "チーム育成", "顧客満足", "家族の豊かさ"],
+            "life_goals": ["事業部長昇進", "売上目標達成", "子供の教育投資"],
+            "pain_points": ["世代間ギャップ", "デジタル化遅れ", "接待疲れ"],
+            "aspirations": ["組織改革", "新市場開拓", "部下の成功"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["関係性重視", "実力主義", "国際感覚"],
+            "language": "日本語（母語）、英語（流暢）、中国語（基礎）",
+            "cultural_influences": "関西ビジネス文化、グローバル経験"
+          },
+          "communication_style": {
+            "verbal_style": "説得力ある、関西弁のユーモア",
+            "detail_preference": "戦略的概要と詳細のバランス",
+            "emotional_expression": "情熱的だが計算された",
+            "preferred_channels": "対面、電話、Teams"
+          }
+        },
+        {
+          "id": 17,
+          "name": "高橋 恵美",
+          "basic_demographics": {
+            "age": 48,
+            "gender": "female",
+            "location": "福岡県北九州市",
+            "household_income": "¥4,800,000",
+            "family_status": "離婚、子供1人（大学生）",
+            "occupation": "製造ライン主任",
+            "education": "工業高校卒、社内研修多数"
+          },
+          "psychological_traits": {
+            "decision_making_style": "practical",
+            "risk_tolerance": "low",
+            "information_processing": "experiential",
+            "social_influence": "mentor_role",
+            "change_adaptability": "pragmatic"
+          },
+          "lifestyle": {
+            "daily_routine": "朝5時起床、6時出社、2交替勤務、17時帰宅",
+            "hobbies": "手芸、家庭菜園、地域ボランティア",
+            "media_consumption": "地方TV、Facebook、料理動画",
+            "shopping_habits": "地元商店街、100円ショップ活用"
+          },
+          "values_and_motivations": {
+            "core_values": ["自立", "後輩育成", "地域貢献", "誠実さ"],
+            "life_goals": ["息子の就職支援", "定年まで健康維持", "技術伝承"],
+            "pain_points": ["体力的衰え", "新技術への不安", "将来の年金"],
+            "aspirations": ["女性技術者の道を開く", "地域活性化", "孫を持つ"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["忍耐", "相互扶助", "ものづくりの誇り"],
+            "language": "日本語（母語）、九州弁",
+            "cultural_influences": "地方工業都市、シングルマザー"
+          },
+          "communication_style": {
+            "verbal_style": "温かく母性的、方言使用",
+            "detail_preference": "実践的、経験に基づく",
+            "emotional_expression": "共感的、励まし上手",
+            "preferred_channels": "対面、電話、手書きメモ"
+          }
+        },
+        {
+          "id": 18,
+          "name": "伊藤 光一",
+          "basic_demographics": {
+            "age": 58,
+            "gender": "male",
+            "location": "静岡県富士市",
+            "household_income": "¥7,200,000",
+            "family_status": "既婚、子供3人（全員独立）",
+            "occupation": "技術部門シニアマネージャー",
+            "education": "地方国立大学工学部卒"
+          },
+          "psychological_traits": {
+            "decision_making_style": "deliberative",
+            "risk_tolerance": "very_low",
+            "information_processing": "thorough",
+            "social_influence": "conservative",
+            "change_adaptability": "resistant"
+          },
+          "lifestyle": {
+            "daily_routine": "朝5時起床、6時30分出社、19時帰宅、土曜出勤",
+            "hobbies": "盆栽、温泉巡り、晩酌",
+            "media_consumption": "新聞、NHK、専門誌",
+            "shopping_habits": "馴染みの店、現金主義"
+          },
+          "values_and_motivations": {
+            "core_values": ["会社への忠誠", "技術の継承", "安定", "責任感"],
+            "life_goals": ["無事定年退職", "再雇用での貢献", "孫の成長"],
+            "pain_points": ["IT化への抵抗", "若手との価値観相違", "体力低下"],
+            "aspirations": ["技術顧問", "後進指導", "第二の人生準備"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["年功序列", "集団和", "職人気質"],
+            "language": "日本語（母語）のみ",
+            "cultural_influences": "高度成長期世代、地方製造業"
+          },
+          "communication_style": {
+            "verbal_style": "権威的、説教調、丁寧語",
+            "detail_preference": "極めて詳細、前例重視",
+            "emotional_expression": "抑制的、時に頑固",
+            "preferred_channels": "対面、紙の書類、固定電話"
+          }
+        },
+        {
+          "id": 19,
+          "name": "中村 亜希",
+          "basic_demographics": {
+            "age": 31,
+            "gender": "female",
+            "location": "広島県広島市",
+            "household_income": "¥5,200,000",
+            "family_status": "既婚、子供なし（不妊治療中）",
+            "occupation": "品質保証スペシャリスト",
+            "education": "地方私立大学理学部卒"
+          },
+          "psychological_traits": {
+            "decision_making_style": "evidence_based",
+            "risk_tolerance": "low",
+            "information_processing": "systematic",
+            "social_influence": "professional",
+            "change_adaptability": "moderate"
+          },
+          "lifestyle": {
+            "daily_routine": "朝6時起床、8時出社、実験・分析、18時帰宅",
+            "hobbies": "読書、映画鑑賞、ペットの世話",
+            "media_consumption": "専門サイト、Amazon Prime、Twitter",
+            "shopping_habits": "ネットスーパー、ドラッグストア"
+          },
+          "values_and_motivations": {
+            "core_values": ["精確性", "プロ意識", "ワークライフバランス", "夫婦の時間"],
+            "life_goals": ["専門性向上", "管理職昇進", "家族を持つ"],
+            "pain_points": ["不妊治療との両立", "キャリアの停滞感", "職場の理解不足"],
+            "aspirations": ["仕事と育児の両立", "専門資格取得", "後輩女性の支援"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["勤勉", "プライバシー重視", "男女平等志向"],
+            "language": "日本語（母語）、英語（技術文書レベル）",
+            "cultural_influences": "地方都市、共働き世代"
+          },
+          "communication_style": {
+            "verbal_style": "論理的、控えめ、専門用語使用",
+            "detail_preference": "データドリブン、正確性重視",
+            "emotional_expression": "プライベートは隠す、仕事は冷静",
+            "preferred_channels": "メール、チャット、レポート"
+          }
+        },
+        {
+          "id": 20,
+          "name": "斎藤 翔太",
+          "basic_demographics": {
+            "age": 24,
+            "gender": "male",
+            "location": "新潟県長岡市",
+            "household_income": "¥2,800,000",
+            "family_status": "独身、実家暮らし",
+            "occupation": "新卒技術系総合職",
+            "education": "地方国立大学工学部卒（修士）"
+          },
+          "psychological_traits": {
+            "decision_making_style": "collaborative",
+            "risk_tolerance": "moderate",
+            "information_processing": "digital_native",
+            "social_influence": "peer_oriented",
+            "change_adaptability": "highly_adaptive"
+          },
+          "lifestyle": {
+            "daily_routine": "朝7時起床、8時30分出社、研修・OJT、19時帰宅",
+            "hobbies": "eスポーツ、アニメ、プログラミング",
+            "media_consumption": "YouTube、TikTok、技術ブログ、Discord",
+            "shopping_habits": "Amazon、メルカリ、コンビニ"
+          },
+          "values_and_motivations": {
+            "core_values": ["成長機会", "フレキシブルな働き方", "技術革新", "社会貢献"],
+            "life_goals": ["専門技術習得", "海外プロジェクト参加", "起業も視野"],
+            "pain_points": ["古い企業文化", "年功序列", "地方勤務", "出会いの少なさ"],
+            "aspirations": ["イノベーター", "グローバルエンジニア", "早期の責任ある仕事"]
+          },
+          "cultural_background": {
+            "ethnicity": "日本人",
+            "cultural_values": ["個人の成長", "効率性", "多様性受容"],
+            "language": "日本語（母語）、英語（TOEIC 800点）",
+            "cultural_influences": "デジタルネイティブ、Z世代"
+          },
+          "communication_style": {
+            "verbal_style": "カジュアル、絵文字使用、効率的",
+            "detail_preference": "ビジュアル重視、簡潔",
+            "emotional_expression": "SNS的表現、素直",
+            "preferred_channels": "Slack、Teams、オンライン会議"
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2024-12-15",
+    "description": "日本の素材・化学製造業の多様な従業員層を表現。interview_purposes.jsonと組み合わせて使用。"
+  }
+}
