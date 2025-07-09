@@ -170,8 +170,19 @@ async function loadPersonaAndPurposeFromUrl() {
         }
         
         // データを並行して読み込み
+        // カテゴリIDから適切なペルソナファイルを決定
+        let personaJsonPath = 'personas/persona/north_america_consumers.json'; // デフォルト
+        
+        if (params.categoryId === 'startup_entrepreneurs_japan') {
+            personaJsonPath = 'personas/persona/startup_entrepreneurs_japan.json';
+        } else if (params.categoryId === 'japanese_manufacturing_workers') {
+            personaJsonPath = 'personas/persona/japanese_manufacturing_workers.json';
+        } else if (params.categoryId === 'north_america_consumers') {
+            personaJsonPath = 'personas/persona/north_america_consumers.json';
+        }
+        
         const [personasData, purposesData] = await Promise.all([
-            loadPersonasFromJson(),
+            loadPersonasFromJson(personaJsonPath),
             loadPurposesFromJson()
         ]);
         
